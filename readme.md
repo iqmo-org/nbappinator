@@ -1,16 +1,22 @@
 # Introduction
 
-nbappinator is an attempt to make interactive Jupyter apps easier to develop and maintain, providing an opinionated framework to reduce the learning curve while allowing advanced users to use any types of widgets.
+nbappinator's goal is to make interactive Jupyter apps easier to develop and maintain, and reduce the learning curve involved with building & deploying Voila applications.
 
-One major purpose for this project is to make it easier to build and deploy Jupyter applications using Voila.
+nbappinator provides an opinionated model for adding apps consisting of interaction widgets, such as buttons and dropdowns, along with display widgets including charts and grid / dataframe rendering.
+
+By creating a TabbedUiModel, you can easily add new display widgets to each page/tab, and set interactions as function calls for each action.
 
 # Foundation
 
-nbappinator builds on a few great projects that provide useful building blocks in Jupyter, which themselves build on great web technologies
+nbappinator builds on a few great projects that provide useful building blocks in Jupyter, which themselves build on other great web technologies.
 
 - [ipyvuetify](https://ipyvuetify.readthedocs.io/en/latest/): Provides the underlying UI widgets, bringing modern VUE components to Jupyter.
 - [ipyaggrid](https://github.com/widgetti/ipyaggrid): Wraps the excellent [AG Grid](https://ag-grid.com/) javascript grid library. AG Grid provides some great enterprise features too.
 - [ipytree](https://github.com/jupyter-widgets-contrib/ipytree): A tree widget for Jupyter
+
+[Plotly](https://plotly.com/) is given first class support, although any matplotlib charting library works too, such as Seaborn.
+
+This all builds on [Jupyter](https://jupyter.org/) and [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/), of course.
 
 # Getting Started
 
