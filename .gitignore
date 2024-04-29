@@ -1,0 +1,6 @@
+*.pyc
+*.json
+__pycache___
+*.pyc
+.ruff_cache
+.vscode
