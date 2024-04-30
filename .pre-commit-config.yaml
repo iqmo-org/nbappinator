@@ -17,7 +17,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        exclude: "packages/app/public/.*|packages/jupyter_app_base/dist/.*|packages/app/build/.*|pyrightconfig.json"
+        exclude: "packages/app/public/.*|packages/jupyter_app_base/dist/.*|packages/app/build/.*|pyrightconfig.json|meta.yaml"
         pass_filenames: true
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.4.2

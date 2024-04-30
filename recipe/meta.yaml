@@ -1,5 +1,5 @@
 {% set name = "nbappinator" %}
-{% set version = "0.0.4" %}
+{% set version = "0.0.5" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/nbappinator-{{ version }}.tar.gz
-  sha256: 09971f5da6825a790311540a21aae566a0389ce1d7f2acd4952f6dae36cd961c
+  sha256: b88f128adb2d37ab11b6230c20693181e62866b8848bbd74dd886cfe72713602
 
 build:
   noarch: python
@@ -16,12 +16,12 @@ build:
 
 requirements:
   host:
-    - python >=3.9
+    - python >=3.7
     - setuptools
     - wheel
     - pip
   run:
-    - python >=3.9
+    - python >=3.7
     - ipywidgets >=7.8.0,<7.9.dev0
     - plotly
     - ipyvuetify >=1.9
@@ -39,7 +39,7 @@ test:
 
 about:
   summary: Jupyter Notebook Application Builder
-  license: 'BSD 3-Clause License'
+  license: BSD-3-Clause
   license_file: LICENSE.md
 
 extra:
