@@ -4,3 +4,4 @@ __pycache___
 *.pyc
 .ruff_cache
 .vscode
+*.code-workspace

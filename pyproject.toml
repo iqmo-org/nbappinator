@@ -1,3 +1,14 @@
+[project]
+name = "nbappinator"
+version = "0.1.0"
+description = "Jupyter Notebook Application Builder"
+authors = [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
+dependencies = ["ipywidgets", "plotly", "ipyvuetify", "ipyaggrid", "ipytree"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.ruff.lint]
 ignore-init-module-imports = true
 

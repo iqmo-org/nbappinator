@@ -2,7 +2,7 @@ import enum
 import logging
 from functools import partial
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Union, Annotated
+from typing import Callable, Dict, List, Optional, Union, Annotated, ContextManager
 
 import ipytree
 import ipyvuetify as v
@@ -147,7 +147,14 @@ class UiPage:
 
         return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
 
-    def add_plt(self, name: str, plt, width=1024, height=1024):
+    def add_plt(
+        self,
+        name: str,
+        plt,
+        width=1024,
+        height=1024,
+        override_page: Optional[str] = None,
+    ):
         import io
 
         buf = io.BytesIO()
@@ -157,17 +164,30 @@ class UiPage:
         )
 
         return self.app.add(
-            page=self.name, elements=UiWidget(w=image_widget, name=name)
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=image_widget, name=name),
         )
 
     def add_plotly_fig(
-        self, name: str, fig, height=None, width=None, png=False, setcolors=True
+        self,
+        name: str,
+        fig,
+        height=None,
+        width=None,
+        png=False,
+        setcolors=True,
+        override_page: Optional[str] = None,
     ):
         w = pcharts.create_widget(
             fig=fig, setcolors=setcolors, height=height, width=width, png=png
         )
 
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
     def add_select(
         self,
@@ -180,6 +200,7 @@ class UiPage:
         multiple: bool = False,
         action: Optional[Callable] = None,
         horiz: bool = False,
+        override_page: Optional[str] = None,
     ):
         if not isinstance(options, list):
             options = list(options)
@@ -217,18 +238,22 @@ class UiPage:
             children = [v.Radio(label=str(o), value=str(o)) for o in options]
             w = v.RadioGroup(label=label, children=children, v_model=None, row=horiz)
         else:
-            raise ValueError(f"Unexpectged type: {type}")
+            raise ValueError(f"Unexpected type: {type}")
 
         if action is not None:
             # Use partial to pass the app & the caller name
             action = partial(action, app=self.app, caller=name)
             w.on_event("change", action)
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
     def add_button(
         self,
         name: str,
-        action: Callable,
+        action: Callable[..., None],
         disabled: bool = False,
         status: bool = False,
         label: Optional[str] = None,
@@ -350,7 +375,7 @@ class UiModel:
 
     _page_widgets: Dict[str, UiPage] = field(default_factory=dict)
 
-    messages: Annotated[Widget, field(init=False)] = field(init=False)
+    messages: Annotated[ContextManager[str], field(init=False)] = field(init=False)
 
     # Containers are used for replacing existing elements and are optional
     containers: Dict[str, ipywidgets.Widget] = field(default_factory=dict)
@@ -365,7 +390,7 @@ class UiModel:
 
         if self.log_page is not None:
             self.get_page(self.log_page).add_output(name="m.ta")
-            self.messages = self.widgets["m.ta"].w
+            self.messages = self.widgets["m.ta"].w  # type: ignore
 
     def get_values(self, name):
         w = self.widgets[name].w
@@ -400,7 +425,7 @@ class UiModel:
             elements_list = elements
 
         if page in self.containers:
-            logger.info("Adding to container")
+            logger.debug("Adding to container")
             widgets = [e.w for e in elements_list]
             self.containers[page].children = (  # type: ignore
                 *self.containers[page].children,  # type: ignore
@@ -409,7 +434,7 @@ class UiModel:
             for e in elements_list:
                 self.widgets[e.name] = e
         else:
-            logger.info("Adding to page")
+            logger.debug("Adding to page")
 
             page = self._page_widgets[page].widget  # type: ignore
 

@@ -34,4 +34,5 @@ def display_ag(
     if action is not None:
         grid.on("cellClicked", action)
 
+    grid.df = input_df  # type: ignore
     return grid
