@@ -557,7 +557,7 @@ class TabbedUiModel(UiModel):
         if log_page_name is not None:
             self.get_page(log_page_name).add_output(name="m.ta", max_outputs=100)
             self._tabWidget = v.Tabs(v_model=[0], children=children)
-            self.messages = self.widgets["m.ta"].w
+            self.messages = self.widgets["m.ta"].w  # type: ignore
 
     def add_page(
         self, title: str, children: List = [], selected_tab=True
@@ -653,6 +653,10 @@ class TabbedUiModel(UiModel):
 
     .vuetify-styles .v-container{
         min-width: 80vw
+    }
+
+    .ag-header {
+        position: relative;
     }
 
    

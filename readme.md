@@ -4,11 +4,13 @@ nbappinator's goal is to make interactive Jupyter apps easier to develop and mai
 
 nbappinator provides an opinionated model for adding apps consisting of interaction widgets, such as buttons and dropdowns, along with display widgets including charts and grid / dataframe rendering.
 
+A secondary goal is to make it easy to swap UI extensions, support different deployment environments, and insulate the developer from implementation decisions relating to web technologies.
+
 By creating a TabbedUiModel, you can easily add new display widgets to each page/tab, and set interactions as function calls for each action.
 
 # Foundation
 
-nbappinator builds on a few great projects that provide useful building blocks in Jupyter, which themselves build on other great web technologies.
+nbappinator builds on a few great projects that provide useful building blocks in Jupyter, which themselves build on other great web technologies. Yet, nbappinator is intended to be implementation agnostic - a core goal is to allow any of these components to be swapped out.
 
 - [ipyvuetify](https://ipyvuetify.readthedocs.io/en/latest/): Provides the underlying UI widgets, bringing modern VUE components to Jupyter.
 - [ipyaggrid](https://github.com/widgetti/ipyaggrid): Wraps the excellent [AG Grid](https://ag-grid.com/) javascript grid library. AG Grid provides some great enterprise features too.
