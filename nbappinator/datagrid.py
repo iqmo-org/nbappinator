@@ -277,12 +277,8 @@ class DataGrid(ag.Grid):
                     "filter": "true",
                     "resizable": "true",
                 },
-                "enableSorting": True,
-                "enableFilter": True,
-                "enableColResize": True,
                 "enableRangeSelection": False,
                 "rowSelection": select_mode,
-                "enableSelection": select_mode is not None,
                 "treeData": is_tree,
                 "getDataPath": splitfunc,
                 "sideBar": {

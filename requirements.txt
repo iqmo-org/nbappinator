@@ -1,5 +1,5 @@
 ipytree
 ipyvuetify
-ipywidgets
+ipywidgets~=7.8.0  # 8.x is problematic on bqnt
 ipyaggrid>=0.5.4
 plotly
