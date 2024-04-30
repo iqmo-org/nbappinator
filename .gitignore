@@ -7,3 +7,4 @@ __pycache___
 *.code-workspace
 dist
 *.egg-info
+.ipynb_checkpoints
