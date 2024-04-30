@@ -392,6 +392,9 @@ class UiModel:
             self.get_page(self.log_page).add_output(name="m.ta")
             self.messages = self.widgets["m.ta"].w  # type: ignore
 
+    def get_valuestr(self, name):
+        return str(self.get_values(name))  # type: ignore
+
     def get_values(self, name):
         w = self.widgets[name].w
 
