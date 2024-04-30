@@ -5,3 +5,5 @@ __pycache___
 .ruff_cache
 .vscode
 *.code-workspace
+dist
+*.egg-info

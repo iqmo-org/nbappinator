@@ -3,10 +3,10 @@ name = "nbappinator"
 version = "0.1.0"
 description = "Jupyter Notebook Application Builder"
 authors = [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
-dependencies = ["ipywidgets", "plotly", "ipyvuetify", "ipyaggrid", "ipytree"]
+dependencies = ["ipywidgets~=7.8.0", "plotly", "ipyvuetify>=1.9", "ipyaggrid>=0.5.4", "ipytree", "pandas>=1.5.3"]
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff.lint]
