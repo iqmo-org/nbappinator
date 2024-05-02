@@ -12,7 +12,7 @@ from ipywidgets import HBox, Widget
 from IPython.display import display
 import traitlets
 
-
+from . import BrowserTitle
 from . import aggridhelper as g
 from . import treew
 from . import datagrid
@@ -74,27 +74,56 @@ class UiPage:
             elements=UiWidget(w=h, name=name),
         )
 
-    def add_separator(self, name: str, color: str = "gray"):
+    def add_separator(
+        self, name: str, color: str = "gray", override_page: Optional[str] = None
+    ):
         w = v.Html(tag="hr", style_=f"border: none; border-top: 5px solid {color};")
 
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
-    def add_container(self, name: str):
+    def add_container(self, name: str, override_page: Optional[str] = None):
         w = v.Container()
         self.app.containers[name] = w
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
-    def add_tree(self, name: str, paths: list[str], delim: str = PATHDELIM):
+    def add_tree(
+        self,
+        name: str,
+        paths: list[str],
+        delim: str = PATHDELIM,
+        override_page: Optional[str] = None,
+    ):
         w = treew.w_tree_paths(
             paths=paths, pathdelim=delim if delim is not None else PATHDELIM
         )
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
     def add_textarea(
-        self, name: str, label: str, disabled: bool = False, value: str = ""
+        self,
+        name: str,
+        label: str,
+        disabled: bool = False,
+        value: str = "",
+        override_page: Optional[str] = None,
     ):
         w = v.Textarea(label=label, v_model=value, disabled=disabled)
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
     def add_textfield(
         self,
@@ -132,20 +161,44 @@ class UiPage:
             elements=UiWidget(w=w, name=name),
         )
 
-    def add_textstatic(self, value: str = "", name: str = "anonymous"):
+    def add_textstatic(
+        self,
+        value: str = "",
+        name: str = "anonymous",
+        override_page: Optional[str] = None,
+    ):
         w = v.CardText(children=value)
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
-    def add_textpre(self, name: str, value: str = ""):
+    def add_textpre(
+        self, name: str, value: str = "", override_page: Optional[str] = None
+    ):
         w = v.Html(tag="pre", children=[value], style_="max-height:80vh")
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
-    def add_output(self, name: str, max_outputs: Optional[int] = None):
+    def add_output(
+        self,
+        name: str,
+        max_outputs: Optional[int] = None,
+        override_page: Optional[str] = None,
+    ):
         w = ipywidgets.Output()
         if max_outputs is not None:
             w.max_outputs = max_outputs  # type: ignore
 
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
     def add_plt(
         self,
@@ -332,11 +385,12 @@ class UiPage:
         flatten_columns: bool = True,
         pathdelim: str = PATHDELIM,
         precision: int = 2,
+        grid_options: dict = {},
+        override_page: Optional[str] = None,
+        multiselect: bool = False,
     ):
         if perccols or coltypes:
             raise ValueError("Deprecated, use col_md")
-
-        grid_options = {}
 
         if is_table_viewer_df is True:
             grid_options["autoGroupColumnDef"] = {
@@ -350,6 +404,11 @@ class UiPage:
 
             grid_options["groupDefaultExpanded"] = -1
 
+        if multiselect:
+            select_mode = "multiple"
+        else:
+            select_mode = None
+
         w = g.display_ag(
             df,
             tree,
@@ -362,13 +421,19 @@ class UiPage:
             grid_options=grid_options,
             flatten_columns=flatten_columns,
             default_precision=precision,
+            select_mode=select_mode,
         )
 
-        return self.app.add(page=self.name, elements=UiWidget(w=w, name=name))
+        return self.app.add(
+            page=self.name,
+            override_page=override_page,
+            elements=UiWidget(w=w, name=name),
+        )
 
 
 @dataclass
 class UiModel:
+
     pages: List[str]
 
     log_page: Optional[str] = None
@@ -384,6 +449,8 @@ class UiModel:
     # to retrieve the current value of individual widgets.
     widgets: Dict[str, UiWidget] = field(default_factory=dict)
 
+    title: Optional[str] = None
+
     def __post_init__(self):
         for p in self.pages:
             self._add_page(title=p)
@@ -391,6 +458,9 @@ class UiModel:
         if self.log_page is not None:
             self.get_page(self.log_page).add_output(name="m.ta")
             self.messages = self.widgets["m.ta"].w  # type: ignore
+
+        if self.title is not None:
+            BrowserTitle(self.title)
 
     def get_valuestr(self, name):
         return str(self.get_values(name))  # type: ignore
@@ -414,7 +484,7 @@ class UiModel:
         self,
         page: str,
         elements: Union[UiWidget, List[UiWidget]],
-        override_page: Optional[str] = None,
+        override_page: Optional[str],
     ):
         page = page if override_page is None else override_page
         if page is None:
@@ -479,6 +549,9 @@ class UiModel:
         if p is not None:
             # TODO: Remove from self.widgets. Not critical, since widgets are overwritten by key value
             p.children = []  # type: ignore
+
+    def clear_messages(self):
+        self.messages.clear_output()  # type: ignore
 
     def clear_container(self, id: str):
         w = self.widgets[id].w

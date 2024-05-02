@@ -211,7 +211,10 @@ class DataGrid(ag.Grid):
 
         allcols = {}
 
-        self._select_mode = select_mode
+        if select_mode is not None:
+            self._select_mode = select_mode
+        else:
+            self._select_mode = "single"
 
         # Handle MD's first
         for md in col_md:

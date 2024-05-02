@@ -1,7 +1,7 @@
 import ipyaggrid as ag
 import pandas as pd
 from .datagrid import ColMd, DataGrid
-from typing import Optional, Callable
+from typing import Optional, Callable, Literal
 
 
 def display_ag(
@@ -16,6 +16,7 @@ def display_ag(
     grid_options: dict = {},
     flatten_columns: bool = True,
     default_precision: int = 2,
+    select_mode: Optional[Literal["single", "multiple"]] = None,
 ) -> ag.Grid:
 
     grid = DataGrid(
@@ -29,6 +30,7 @@ def display_ag(
         grid_options=grid_options,
         default_precision=default_precision,
         flatten_columns=flatten_columns,
+        select_mode=select_mode,
     )
 
     if action is not None:
