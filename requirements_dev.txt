@@ -2,6 +2,7 @@ coverage
 pytest
 nbformat
 nbconvert
+ipykernel
 
 pandas
 ipytree
