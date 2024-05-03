@@ -1,5 +1,6 @@
 coverage
 pytest
+nbformat
 
 pandas
 ipytree
