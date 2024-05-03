@@ -38,7 +38,7 @@ jobs:
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
         env:
-          COVERAGE_PROCESS_START: ${{ github.workspace }}
+          COVERAGE_PROCESS_START: ${{ github.workspace }}/nbappinator
         with:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Build package
