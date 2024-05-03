@@ -32,7 +32,7 @@ jobs:
           pip install build twine
       - name: Run tests with coverage
         env:
-          COVERAGE_PROCESS_START: ${{ github.workspace }}
+          COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           pip install coverage
           coverage run -m pytest
@@ -40,7 +40,7 @@ jobs:
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
         with:
-          GITHUB_TOKEN: ${{ github.token }}/.coveragerc
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Build package
         run: |
           python -m build
