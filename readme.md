@@ -1,3 +1,5 @@
+[![Coverage badge](https://raw.githubusercontent.com/iqmo-org/nbappinator/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/iqmo-org/nbappinator/blob/python-coverage-comment-action-data/htmlcov/index.html)
+
 # Introduction
 
 nbappinator's goal is to make interactive Jupyter apps easier to develop and maintain, and reduce the learning curve involved with building & deploying Voila applications.
