@@ -37,7 +37,9 @@ jobs:
           echo $COVERAGE_PROCESS_START
           ls -l 
           pip install coverage
+          coverage erase
           coverage run -m pytest
+          coverage combine
           coverage report
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23

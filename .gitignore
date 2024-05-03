@@ -9,6 +9,8 @@ note_modules
 dist
 *.egg-info
 .ipynb_checkpoints
-.coverage*
+
+.coverage
+
 .pytest_cache
 build
