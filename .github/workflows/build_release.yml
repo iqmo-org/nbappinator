@@ -40,7 +40,7 @@ jobs:
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
         with:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}/.coveragerc
       - name: Build package
         run: |
           python -m build
