@@ -14,7 +14,8 @@ jobs:
     environment: release
     permissions:
       id-token: write
-      contents: read
+      contents: write
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -34,7 +35,8 @@ jobs:
           coverage report
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
-
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
       - name: Build package
         run: |
           python -m build
