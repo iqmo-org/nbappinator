@@ -23,7 +23,11 @@ def test_notebook(notebook):
 
     nb.cells.insert(
         0, nbformat.v4.new_code_cell("import coverage\ncoverage.process_startup()")
-    )  # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
+    )
+    # This requires COVERAGE_PROCESS_START environment variable
+    # and parallel=true
+    # and omit the generated .py code
+    # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
 
     ep = ExecutePreprocessor(timeout=600)
     ep.preprocess(nb)
