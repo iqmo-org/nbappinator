@@ -31,14 +31,14 @@ jobs:
           pip install -r requirements_dev.txt
           pip install build twine
       - name: Run tests with coverage
+        env:
+          COVERAGE_PROCESS_START: ${{ github.workspace }}
         run: |
           pip install coverage
           coverage run -m pytest
           coverage report
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
-        env:
-          COVERAGE_PROCESS_START: ${{ github.workspace }}/nbappinator
         with:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Build package
