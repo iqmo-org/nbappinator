@@ -11,6 +11,7 @@ dist
 .ipynb_checkpoints
 
 .coverage
+.coverage.*
 
 .pytest_cache
 build

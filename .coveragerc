@@ -6,4 +6,4 @@
 [run]
 relative_files = true
 parallel = true
-omit = */AppData/*
+omit = *ipykernel*
