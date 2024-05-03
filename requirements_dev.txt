@@ -1,0 +1,9 @@
+coverage
+pytest
+
+pandas
+ipytree
+ipyvuetify
+ipywidgets
+ipyaggrid
+plotly

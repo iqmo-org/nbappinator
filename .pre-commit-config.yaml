@@ -45,3 +45,13 @@ repos:
         language: node
         pass_filenames: true
         additional_dependencies: ["pyright"]
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest tests
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
