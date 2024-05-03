@@ -20,5 +20,5 @@ def test_notebook(notebook):
     print(f"Testing {notebook}")
     with open(os.path.join(notebook_dir, notebook)) as f:
         nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
+    ep = ExecutePreprocessor(timeout=600)
     ep.preprocess(nb)
