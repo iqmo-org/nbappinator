@@ -1,2 +1,9 @@
+# coverage run -m pytest
+# coverage combine
+# coverage report -m 
+
+
 [run]
 relative_files = true
+parallel = true
+omit = */AppData/*

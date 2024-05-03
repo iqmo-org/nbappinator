@@ -20,5 +20,10 @@ def test_notebook(notebook):
     print(f"Testing {notebook}")
     with open(os.path.join(notebook_dir, notebook)) as f:
         nb = nbformat.read(f, as_version=4)
-    ep = ExecutePreprocessor(timeout=600, kernel_name="python")
+
+    nb.cells.insert(
+        0, nbformat.v4.new_code_cell("import coverage\ncoverage.process_startup()")
+    )  # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
+
+    ep = ExecutePreprocessor(timeout=600)
     ep.preprocess(nb)

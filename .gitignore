@@ -3,11 +3,12 @@
 __pycache__
 *.pyc
 .ruff_cache
+note_modules
 .vscode
 *.code-workspace
 dist
 *.egg-info
 .ipynb_checkpoints
-.coverage
+.coverage*
 .pytest_cache
 build
