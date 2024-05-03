@@ -3,6 +3,7 @@ pytest
 nbformat
 nbconvert
 ipykernel
+seaborn
 
 pandas
 ipytree
