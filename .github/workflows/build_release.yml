@@ -25,6 +25,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -38,7 +39,8 @@ jobs:
           ls -l 
           pip install coverage
           coverage erase
-          coverage run -m pytest
+          # -n 4 uses pytest-xdist to run 4 parallel pytest threads
+          coverage run -m pytest -n 4
           coverage combine
           coverage report
       - name: Python Coverage Comment

@@ -31,3 +31,16 @@ def test_notebook(notebook):
 
     ep = ExecutePreprocessor(timeout=600)
     ep.preprocess(nb)
+
+
+# Minor tests for exceptions
+def test_fail1():
+    myapp = nbappinator.TabbedUiModel(
+        pages=["Page 1"],
+        title="Some Title That'll Only Show Up in Voila",
+        log_footer="Messages",
+        headers=["Config"],
+    )
+
+    with pytest.raises(ValueError):
+        myapp.get_page(0).add_select(label="Foo", type="Foo")

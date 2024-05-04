@@ -41,10 +41,11 @@ def create_widget(
         fig.layout.width = width
 
     if png:
+        # if width is None:
+        #    fig.layout.width = 900
         image_bytes = pio.to_image(fig, format="png")
         encoded_image = base64.b64encode(image_bytes).decode("utf-8")
-        if width is None:
-            fig.layout.width = 900
+
         w = v.Html(
             tag="img",
             children=[],

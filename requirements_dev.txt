@@ -1,6 +1,7 @@
 coverage
 nbval
 pytest
+pytest-xdist
 nbformat
 nbconvert
 ipykernel
