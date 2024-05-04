@@ -1,4 +1,4 @@
-name: Release Package
+name: Build Package
 
 on:
   push:
@@ -6,12 +6,11 @@ on:
       - "*"
     tags:
       - "v*"
-  workflow_dispatch:
 
 jobs:
   build-and-upload:
     # https://docs.pypi.org/trusted-publishers/using-a-publisher/
-    name: upload release to PyPI
+    name: Build-Test-Release on Tag
     runs-on: ubuntu-latest
     environment: release
     permissions:
