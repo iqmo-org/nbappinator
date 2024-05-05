@@ -32,8 +32,7 @@ jobs:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           coverage erase
-          # -n 4 uses pytest-xdist to run 4 parallel pytest threads
-          coverage run -m pytest -n 4
+          coverage run -m pytest -n auto
           coverage combine
           coverage report
       - name: Python Coverage Comment
