@@ -386,7 +386,7 @@ class DataGrid(ag.Grid):
 
         self.message_handlers = []
 
-        def msg_rx(_, msg, buffers):  # pragma: no cover
+        def msg_rx(_, msg, buffers):
             try:
                 self.process_message(msg)
             except Exception as e:
@@ -395,7 +395,7 @@ class DataGrid(ag.Grid):
 
         self.on_msg(msg_rx)
 
-    def process_message(self, msg: Any):  # pragma: no cover
+    def process_message(self, msg: Any):
         logger.debug("Widget got message", msg)
         pMsg = msg
 
@@ -427,9 +427,7 @@ class DataGrid(ag.Grid):
     ):
         self.message_handlers.append((handler, msg_type))
 
-    def remove_message_handler(
-        self, handler: Callable[[Dict], None]
-    ):  # pragma: no cover
+    def remove_message_handler(self, handler: Callable[[Dict], None]):
         for handler_tuple in self.message_handlers:
             if handler_tuple[0] == handler:
                 self.message_handlers.remove(handler_tuple)

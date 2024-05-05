@@ -12,6 +12,9 @@ nbconvert
 ipykernel
 seaborn
 
+# for local dev
+pre-commit
+
 # For notebooks
 pandas
 ipytree

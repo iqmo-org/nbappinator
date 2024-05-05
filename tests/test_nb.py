@@ -1,39 +1,84 @@
-import os
+import pytest
+from pathlib import Path
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
-import pytest
-import nbappinator  # type: ignore # for coverage   # noqa: F401
+import nbappinator
 
-notebook_dir = "notebooks"
-skip_notebooks = []
+NOTEBOOK_DIR = Path("./notebook_tests")
+SKIP_NOTEBOOKS = []  # ["1_readme_example.ipynb"]
+TIMEOUT = 600
 
 
+# Run this test for every ipynb file in notebook directory
 @pytest.mark.parametrize(
     "notebook",
     [
         f
-        for f in os.listdir(notebook_dir)
-        if f.endswith(".ipynb") and f not in skip_notebooks
+        for f in NOTEBOOK_DIR.glob("**/*.ipynb")
+        if f.name not in SKIP_NOTEBOOKS
+        and ".ipynb_checkpoints" not in str(f.absolute())
     ],
 )
-def test_notebook(notebook):
-    print(f"Testing {notebook}")
-    with open(os.path.join(notebook_dir, notebook)) as f:
+def test_notebook_execution(notebook: Path, pytestconfig):
+    """Verifies that the notebook runs to completion without an Exception.
+
+    This test is a low standard: it doesn't verify the notebooks are usable. It's useful with coverage.py to verify that your notebooks execute
+    all the code paths.
+
+    To make this method more robust, add assertions to the end of your notebooks `assert xyz`.
+
+    Or, alternatively, use `test_notebook_nbval` to verify the notebook content hasn't changed.
+
+    ## Coverage
+    This test is intended to be used with coverage.py
+
+    To use:
+    - Set the COVERAGE_PROCESS_START environment variable to the location of your .coveragerc file.
+    - Setup your .coveragerc file, see below
+    - `coverage combine` the results when done
+    - run pytest with `--coverage` (see conftest.py to setup parameter)
+
+    ## .coveragerc:
+    ```
+    [run]
+    relative_files = true  # needed for `python-coverage-comment-action` in our github action. Optional.
+    parallel = true  # required because each Notebook runs in a separate thread
+    omit = */*ipykernel*/*  # required to exclude the Notebook code itself from the coverage check and coverage will complain about not finding the code.
+
+    ## Usage
+    - `coverage erase`: removes previous runs
+    - `coverage run -m pytest`: Runs the test cases
+    - `coverage combine`: combines the coverage outputs into a single coverage file
+    - `coverage report -m`: generates the report
+
+    ## More Info on Parallel coverage.py
+    - https://coverage.readthedocs.io/en/7.5.0/subprocess.html
+
+    Args:
+        notebook (Path): filename - just the filename, it will be resolved within the notebook_dir
+    """
+    with open(notebook) as f:
         nb = nbformat.read(f, as_version=4)
 
-    nb.cells.insert(
-        0, nbformat.v4.new_code_cell("import coverage\ncoverage.process_startup()")
-    )
+    coverage = pytestconfig.getoption("coverage")
+    if coverage:
+        nb.cells.insert(
+            0, nbformat.v4.new_code_cell("import coverage\ncoverage.process_startup()")
+        )
+
     # This requires COVERAGE_PROCESS_START environment variable
     # and parallel=true
     # and omit the generated .py code
     # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
 
-    ep = ExecutePreprocessor(timeout=600)
+    ep = ExecutePreprocessor(timeout=TIMEOUT)
     ep.preprocess(nb)
 
 
-# Minor tests for exceptions
+#### Exceptions Tests
+# These tests are fairly low value, but confirm that Exceptions occur on invalid input
+
+
 def test_fail1():
     myapp = nbappinator.TabbedUiModel(
         pages=["Page 1"],
