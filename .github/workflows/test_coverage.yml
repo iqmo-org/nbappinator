@@ -1,4 +1,4 @@
-name: Build Package
+name: Test and Coverage
 
 on:
   push:
@@ -40,3 +40,8 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@v3.23
         with:
           GITHUB_TOKEN: ${{ github.token }}
+
+      # Verify that project still builds
+      - name: Build package
+        run: |
+          python -m build
