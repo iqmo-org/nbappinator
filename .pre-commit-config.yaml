@@ -13,6 +13,8 @@ repos:
     rev: 0.7.1
     hooks:
       - id: nbstripout
+        # Don't strip test cases that use nbval
+        exclude: "^notebook_tests/.*"
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
@@ -20,7 +22,7 @@ repos:
         exclude: "packages/app/public/.*|packages/jupyter_app_base/dist/.*|packages/app/build/.*|pyrightconfig.json|meta.yaml"
         pass_filenames: true
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.4.2
+    rev: v0.4.3
     hooks:
       - id: ruff
   - repo: "local"
@@ -45,3 +47,13 @@ repos:
         language: node
         pass_filenames: true
         additional_dependencies: ["pyright"]
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest -n auto tests
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: false
+        files: '.*\.(py|ipynb)$'
