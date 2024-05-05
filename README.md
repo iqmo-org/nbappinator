@@ -2,17 +2,10 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/iqmo-org/nbappinator/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                          |    Stmts |     Miss |   Cover |   Missing |
-|------------------------------ | -------: | -------: | ------: | --------: |
-| nbappinator/\_\_init\_\_.py   |        3 |        0 |    100% |           |
-| nbappinator/aggridhelper.py   |       10 |        0 |    100% |           |
-| nbappinator/appinator.py      |      293 |       31 |     89% |270, 421, 423, 428, 438, 462-465, 472-477, 495, 501-505, 511-512, 628, 631-632, 637-643, 710 |
-| nbappinator/browser\_title.py |        8 |        0 |    100% |           |
-| nbappinator/datagrid.py       |       86 |       12 |     86% |25, 30, 45-46, 49, 171, 208, 210, 224, 228, 267-268 |
-| nbappinator/plotly\_charts.py |       34 |        3 |     91% |     46-49 |
-| nbappinator/treew.py          |       61 |       26 |     57% |10-12, 37, 45-48, 51-54, 66-69, 75-92 |
-| tests/conftest.py             |        0 |        0 |    100% |           |
-|                     **TOTAL** |  **495** |   **72** | **85%** |           |
+| Name              |    Stmts |     Miss |    Cover |   Missing |
+|------------------ | -------: | -------: | -------: | --------: |
+| tests/conftest.py |        2 |        0 |     100% |           |
+|         **TOTAL** |    **2** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
