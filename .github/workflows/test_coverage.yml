@@ -32,7 +32,9 @@ jobs:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           coverage erase
-          coverage run -m pytest -n auto
+          # The extra coverage enables coverage inside the tests
+          # A little redundant
+          coverage run -m pytest -n auto --coverage
           coverage combine
           coverage report
       - name: Python Coverage Comment
