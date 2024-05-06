@@ -2,11 +2,6 @@ import pytest
 import pandas as pd
 import nbappinator
 
-# TODO: Remove the next two lines and activate externally
-import coverage
-
-coverage.process_startup()
-
 
 def test_fail_invalidselectoption():
     myapp = nbappinator.TabbedUiModel(

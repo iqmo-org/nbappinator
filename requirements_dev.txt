@@ -4,9 +4,9 @@ twine
 
 # For testing
 coverage
-nbval
 pytest
 pytest-xdist
+pytest-cov
 nbformat
 nbconvert
 ipykernel

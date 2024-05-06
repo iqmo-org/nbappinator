@@ -16,7 +16,7 @@ from .env_helper import NOTEBOOK_DIR, SEARCH, SKIP_NOTEBOOKS, NOTEBOOK_TIMEOUT
         and ".ipynb_checkpoints" not in str(f.absolute())
     ],
 )
-def test_notebook_execution(notebook: Path, pytestconfig):
+def test_notebook_execution(notebook: Path):
     """Verifies that the notebook runs to completion without an Exception.
 
     This test is a low standard: it doesn't verify the notebooks are usable. It's useful with coverage.py to verify that your notebooks execute
@@ -56,17 +56,6 @@ def test_notebook_execution(notebook: Path, pytestconfig):
     """
     with open(notebook) as f:
         nb = nbformat.read(f, as_version=4)
-
-    coverage = pytestconfig.getoption("coverage")
-    if coverage:
-        nb.cells.insert(
-            0, nbformat.v4.new_code_cell("import coverage\ncoverage.process_startup()")
-        )
-
-    # This requires COVERAGE_PROCESS_START environment variable
-    # and parallel=true
-    # and omit the generated .py code
-    # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
 
     ep = ExecutePreprocessor(timeout=NOTEBOOK_TIMEOUT)
     ep.preprocess(nb)
