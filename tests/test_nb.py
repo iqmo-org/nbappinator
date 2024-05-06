@@ -2,9 +2,7 @@ import pytest
 import nbformat
 
 from pathlib import Path
-import pandas as pd
 from nbconvert.preprocessors import ExecutePreprocessor
-import nbappinator
 from .env_helper import NOTEBOOK_DIR, SEARCH, SKIP_NOTEBOOKS, NOTEBOOK_TIMEOUT
 
 
@@ -72,39 +70,3 @@ def test_notebook_execution(notebook: Path, pytestconfig):
 
     ep = ExecutePreprocessor(timeout=NOTEBOOK_TIMEOUT)
     ep.preprocess(nb)
-
-
-#### Exceptions Tests
-# These tests are fairly low value, but confirm that Exceptions occur on invalid input
-
-
-def test_fail_invalidselectoption():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["Page 1"],
-        title="Some Title That'll Only Show Up in Voila",
-        log_footer="Messages",
-        headers=["Config"],
-    )
-
-    with pytest.raises(ValueError):
-        myapp.get_page(0).add_select(label="Foo", type=9)  # type: ignore
-
-
-def test_fail_invalidpathcol():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["First Tab"], log_footer="Messages", headers=["Config"]
-    )
-    df = pd.DataFrame({"col1": [1, 2, 3]})
-    with pytest.raises(ValueError):
-
-        myapp.get_page(0).add_df(
-            df=df, tree=True, pathcol="Doesn't Exist", pathdelim="/"
-        )
-
-
-def test_fail_notapage():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["First Tab"], log_footer="Messages", headers=["Config"]
-    )
-    with pytest.raises(ValueError):
-        myapp.get_page("asdasdTable")

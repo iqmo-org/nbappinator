@@ -32,9 +32,7 @@ jobs:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           coverage erase
-          # --coverage is a bit redundant, but passes a flag to the tests
-          # disabled xdist: -n auto 
-          coverage run -m pytest --coverage
+          coverage run -m pytest -n auto --coverage
           coverage combine
           coverage report
       - name: Python Coverage Comment
