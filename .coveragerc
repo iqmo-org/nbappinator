@@ -6,4 +6,6 @@
 [run]
 relative_files = true
 parallel = true
-omit = */*ipykernel*/*
+omit = 
+    */*ipykernel*/*
+    tests/*

@@ -10,7 +10,7 @@ import ipytree
 import ipyvuetify as v
 import ipywidgets
 from ipyvuetify import Tab, TabItem
-from ipywidgets import HBox, Widget
+from ipywidgets import Widget
 from IPython.display import display
 import traitlets
 
@@ -29,7 +29,6 @@ PATHDELIM = "~"
 class UiWidget:
     w: Widget
     name: Optional[str]
-    replaceable: bool = False
 
 
 class SelectTypes(enum.Enum):
@@ -106,7 +105,7 @@ class UiPage:
         w = treew.w_tree_paths(
             paths=paths, pathdelim=delim if delim is not None else PATHDELIM
         )
-        return self.add(
+        self.add(
             elements=UiWidget(w=w, name=name),
         )
 
@@ -118,7 +117,7 @@ class UiPage:
         value: str = "",
     ):
         w = v.Textarea(label=label, v_model=value, disabled=disabled)
-        return self.add(
+        self.add(
             elements=UiWidget(w=w, name=name),
         )
 
@@ -371,6 +370,9 @@ class UiPage:
         else:
             select_mode = None
 
+        if tree and pathcol not in df.columns:
+            raise ValueError("If tree, then pathcol must be in df.columns")
+
         w = g.display_ag(
             df,
             tree,
@@ -389,6 +391,17 @@ class UiPage:
         return self.add(
             elements=UiWidget(w=w, name=name),
         )
+
+    def add_html(
+        self,
+        html: str,
+        name: Optional[str],
+    ):
+
+        ho = HTMLOutput()
+        ho.html = html
+        w = UiWidget(name=name, w=ho)
+        self.add(w)
 
 
 @dataclass
@@ -424,27 +437,19 @@ class UiModel:
         else:
             return self.widgets[name].w.v_model  # type: ignore
 
-    def _add_page(self, title: str, children: List = []):
-        self._page_widgets[title] = UiPage(
-            app=self, name=title, widget=ipywidgets.VBox(children)
-        )
-
     def _add(self, target: str, elements: Union[UiWidget, List[UiWidget]]):
         """Target can be either a Page name or a Container name"""
-
-        if not isinstance(elements, list):
-            elements_list = [elements]
-        else:
-            elements_list = elements
+        if isinstance(elements, UiWidget):
+            elements = [elements]
 
         if target in self.containers:
             logger.debug("Adding to container")
-            widgets = [e.w for e in elements_list]
+            widgets = [e.w for e in elements]
             self.containers[target].children = (  # type: ignore
                 *self.containers[target].children,  # type: ignore
                 *widgets,
             )
-            for e in elements_list:
+            for e in elements:
                 if e.name is not None:
                     self.widgets[e.name] = e
         else:
@@ -454,17 +459,11 @@ class UiModel:
 
             children = page.children  # type: ignore
             newchildren = []
-            for e in elements_list:
+            for e in elements:
                 if e.name is not None:
                     self.widgets[e.name] = e
 
-                if e.replaceable:
-                    new_container = HBox([e.w])
-                    if e.name is not None:
-                        self.containers[e.name] = new_container
-                    newchildren.append(new_container)
-                else:
-                    newchildren.append(e.w)
+                newchildren.append(e.w)
 
             page.children = (*children, *newchildren)  # type: ignore
 
@@ -631,8 +630,6 @@ class TabbedUiModel(UiModel):
         if name in self.pages:
             self._tabWidget.v_model = list(self.pages).index(name)
 
-        # display(f"Toggling {index} {name} {self.tabWidget.children[index]}")
-
     def toggle_tab(self, name: str, disabled: bool):
         if name in self.pages:
             index = list(self.pages).index(name)
@@ -641,7 +638,6 @@ class TabbedUiModel(UiModel):
         if self.headers is not None and name in self.headers:
             index = list(self.headers).index(name)
             self._headerWidget.children[index].disabled = disabled  # type: ignore
-        # display(f"Toggling {index} {name} {self.tabWidget.children[index]}")
 
     def get_children(self):
         children = []
@@ -710,7 +706,6 @@ class HTMLOutput(v.VuetifyTemplate):
         return """
             <template>
                 <div v-html="html">
-                    
                 </div>
             </template>
         """

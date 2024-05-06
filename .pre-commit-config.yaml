@@ -3,26 +3,25 @@ default_language_version:
 exclude: "^$"
 
 repos:
-  - repo: https://github.com/ambv/black
-    rev: 24.4.2
-    hooks:
-      - id: black
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-      - id: check-added-large-files
   - repo: https://github.com/kynan/nbstripout
     rev: 0.7.1
     hooks:
       - id: nbstripout
-        # Don't strip test cases that use nbval
-        exclude: "^notebook_tests/.*"
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         exclude: "packages/app/public/.*|packages/jupyter_app_base/dist/.*|packages/app/build/.*|pyrightconfig.json|meta.yaml"
         pass_filenames: true
+  - repo: https://github.com/ambv/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        fail_fast: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.4.3
     hooks:
@@ -59,3 +58,17 @@ repos:
         pass_filenames: false
         always_run: false
         files: '.*\.(py|ipynb)$'
+  - repo: local
+    hooks:
+      # This hook isn't used
+      # pre-commit run nbval --hook-stage manual
+      #  pytest --nbval 1_readme_example.ipynb --sanitize-with nb_sanitize.cfg
+      - id: nbval
+        name: nbval
+        entry: pytest -n 4 --dist loadscope notebooks --nbval --nbval-sanitize-with notebooks/nb_sanitize.cfg
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: false
+        files: '.*\.(py|ipynb)$'
+        stages: [manual] # Disabling the hook

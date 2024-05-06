@@ -1,15 +1,13 @@
 import logging
-import ipywidgets
-import ipyvuetify as v
 from ipytree import Node, Tree
 
 logger = logging.getLogger(__name__)
 
 
-def w_tree(root: str):
-    rootText = f'<span style="color: green;font-weight: italic;">{root}</span>'
-    tree = Tree(nodes=[Node(rootText)])
-    return tree
+# def w_tree(root: str):
+#    rootText = f'<span style="color: green;font-weight: italic;">{root}</span>'
+#    tree = Tree(nodes=[Node(rootText)])
+#    return tree
 
 
 def w_tree_paths(paths: list[str], pathdelim):
@@ -60,33 +58,3 @@ def w_tree_paths(paths: list[str], pathdelim):
         tree.add_node(n)
 
     return tree
-
-
-def w_output():
-    out = ipywidgets.Output()
-    with out:
-        print("Hi!")
-    return out
-
-
-def w_tabs(tabs: dict[str, list[ipywidgets.Widget]]):
-    # Create three Tab components
-
-    children = []
-
-    for k, w in tabs.items():
-        tab = v.Tab(children=[k])
-        if isinstance(v, list):
-            content = v.TabItem(
-                children=w, style_="padding-left: 40%; padding-right: 10%;"
-            )
-        else:
-            content = v.TabItem(
-                children=[w], style_="padding-left: 40%; padding-right: 10%;"
-            )
-        children.append(tab)
-        children.append(content)
-
-    tabWidget = v.Tabs(v_model=0, children=children)  # select first tab
-
-    return tabWidget

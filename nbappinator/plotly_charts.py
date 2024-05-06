@@ -29,11 +29,9 @@ def create_widget(
 
         line_dash_sequence = ["solid", "dot", "dash"]
         for i, trace in enumerate(fig.data):
-            try:
+            if hasattr(trace, "line"):
                 line_dash_index = (i // numcolors) % len(line_dash_sequence)
                 trace.line.dash = line_dash_sequence[line_dash_index]  # type: ignore
-            except Exception:
-                logger.exception("Error setting colors")
 
     if height is not None:
         fig.layout.height = height
@@ -41,6 +39,11 @@ def create_widget(
         fig.layout.width = width
 
     if png:
+        import kaleido  # type: ignore  # noqa
+
+        # Kaleido is only required if png generation is needed. This ensures it is installed.
+        # App may hang otherwise
+
         # if width is None:
         #    fig.layout.width = 900
         image_bytes = pio.to_image(fig, format="png")

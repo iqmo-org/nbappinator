@@ -11,9 +11,15 @@ nbformat
 nbconvert
 ipykernel
 seaborn
+kaleido
 
 # for local dev
 pre-commit
+python-dotenv
+
+# for snapshot_mgr
+s3fs  
+universal_pathlib
 
 # For notebooks
 pandas

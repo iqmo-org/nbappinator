@@ -17,7 +17,6 @@ class ColMd:
     format: str = "default"  # percent, decimal, mag_si (convert to K/M/G suffixes)
     pinned: bool = False
     hidden: bool = False
-    display_props = None
     precision: Optional[int] = None
 
     def __post_init__(self):
@@ -25,9 +24,6 @@ class ColMd:
             self.name = str(self.name)
         if self.label is None:
             self.label = self.name.title().replace("_", " ")
-
-        if self.display_props is not None and self.display_props.pinned:
-            self.pinned = True
 
 
 def _addcol(
@@ -193,7 +189,7 @@ class DataGrid(ag.Grid):
         num_toppinned_rows=0,
         flatten_columns=True,
         default_precision=2,
-        license="community",
+        license="e",
         *argv,
         **kargv,
     ):
@@ -203,9 +199,9 @@ class DataGrid(ag.Grid):
         if isinstance(grid_data, pd.DataFrame) and flatten_columns:
             input_df = grid_data.copy()
             input_df.columns = [str(col) for col in input_df.columns]
-
         else:
             input_df = pd.DataFrame(grid_data)
+
         if showindex:
             input_df = input_df.reset_index()
 
@@ -386,7 +382,9 @@ class DataGrid(ag.Grid):
 
         self.message_handlers = []
 
-        def msg_rx(_, msg, buffers):
+        def msg_rx(
+            _, msg, buffers
+        ):  # pragma: no cover  # bypassing because only reached from js
             try:
                 self.process_message(msg)
             except Exception as e:
@@ -396,12 +394,13 @@ class DataGrid(ag.Grid):
         self.on_msg(msg_rx)
 
     def process_message(self, msg: Any):
-        logger.debug("Widget got message", msg)
+        logger.debug("Widget got message: %s", msg)
         pMsg = msg
 
         # make sure its one of our events
         if "type" not in pMsg or pMsg["type"] != "gridEvent" and "event_type" in pMsg:
             return
+
         if self._select_mode is not None:
             if pMsg["event_type"] == "cellClicked" and "currentSelection" in pMsg:
                 self.current_selection = pMsg["currentSelection"]
@@ -415,10 +414,7 @@ class DataGrid(ag.Grid):
             )
             if handle_msg_type is None or pMsg["event_type"] == handle_msg_type:
                 logger.debug("Calling handler")
-                try:
-                    handler(pMsg)
-                except Exception:
-                    logger.exception("Error running handler")
+                handler(pMsg)
 
     def on(
         self,

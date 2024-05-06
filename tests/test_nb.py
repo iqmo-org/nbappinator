@@ -1,12 +1,11 @@
 import pytest
-from pathlib import Path
 import nbformat
+
+from pathlib import Path
+import pandas as pd
 from nbconvert.preprocessors import ExecutePreprocessor
 import nbappinator
-
-NOTEBOOK_DIR = Path("./notebook_tests")
-SKIP_NOTEBOOKS = []  # ["1_readme_example.ipynb"]
-TIMEOUT = 600
+from .env_helper import NOTEBOOK_DIR, SEARCH, SKIP_NOTEBOOKS, NOTEBOOK_TIMEOUT
 
 
 # Run this test for every ipynb file in notebook directory
@@ -14,7 +13,7 @@ TIMEOUT = 600
     "notebook",
     [
         f
-        for f in NOTEBOOK_DIR.glob("**/*.ipynb")
+        for f in NOTEBOOK_DIR.glob(SEARCH)
         if f.name not in SKIP_NOTEBOOKS
         and ".ipynb_checkpoints" not in str(f.absolute())
     ],
@@ -71,7 +70,7 @@ def test_notebook_execution(notebook: Path, pytestconfig):
     # and omit the generated .py code
     # https://coverage.readthedocs.io/en/7.5.0/subprocess.html
 
-    ep = ExecutePreprocessor(timeout=TIMEOUT)
+    ep = ExecutePreprocessor(timeout=NOTEBOOK_TIMEOUT)
     ep.preprocess(nb)
 
 
@@ -79,7 +78,7 @@ def test_notebook_execution(notebook: Path, pytestconfig):
 # These tests are fairly low value, but confirm that Exceptions occur on invalid input
 
 
-def test_fail1():
+def test_fail_invalidselectoption():
     myapp = nbappinator.TabbedUiModel(
         pages=["Page 1"],
         title="Some Title That'll Only Show Up in Voila",
@@ -88,4 +87,17 @@ def test_fail1():
     )
 
     with pytest.raises(ValueError):
-        myapp.get_page(0).add_select(label="Foo", type="Foo")
+        myapp.get_page(0).add_select(label="Foo", type=9)  # type: ignore
+
+
+def test_fail_invalidpathcol():
+
+    myapp = nbappinator.TabbedUiModel(
+        pages=["First Tab"], log_footer="Messages", headers=["Config"]
+    )
+    df = pd.DataFrame({"col1": [1, 2, 3]})
+    with pytest.raises(ValueError):
+
+        myapp.get_page(0).add_df(
+            df=df, tree=True, pathcol="Doesn't Exist", pathdelim="/"
+        )

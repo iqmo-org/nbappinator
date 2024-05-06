@@ -1,0 +1,10 @@
+# This file is safe to commit
+
+NOTEBOOK_DIR = "./notebooks"
+BASELINE_DIR = "./notebooks/baseline"
+BASELINE_DIR = "./notebooks/checkpoint"
+SEARCH = "**/*.ipynb"
+NOTEBOOK_TIMEOUT = 600
+
+# Notebook filenames separated by spaces
+SKIP_NOTEBOOKS = ""
