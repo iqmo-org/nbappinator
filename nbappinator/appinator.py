@@ -467,14 +467,6 @@ class UiModel:
 
             page.children = (*children, *newchildren)  # type: ignore
 
-    def replace(self, container: str, element: UiWidget):
-        if element is None:
-            self.containers[container].children = []  # type: ignore
-        else:
-            self.containers[container].children = [element.w]  # type: ignore
-            if element.name is not None:
-                self.widgets[element.name] = element
-
     def get_page(self, title: Union[str, int]):
         """
 
@@ -495,13 +487,6 @@ class UiModel:
 
     def set_value(self, name, value):
         self.widgets[name].w.v_model = value  # type: ignore
-
-    def _clear_page(self, title: str):
-        p = self.get_page(title=title).widget
-
-        if p is not None:
-            # TODO: Remove from self.widgets. Not critical, since widgets are overwritten by key value
-            p.children = []  # type: ignore
 
     def clear_messages(self):
         self.messages.clear_output()  # type: ignore

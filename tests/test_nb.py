@@ -91,7 +91,6 @@ def test_fail_invalidselectoption():
 
 
 def test_fail_invalidpathcol():
-
     myapp = nbappinator.TabbedUiModel(
         pages=["First Tab"], log_footer="Messages", headers=["Config"]
     )
@@ -101,3 +100,11 @@ def test_fail_invalidpathcol():
         myapp.get_page(0).add_df(
             df=df, tree=True, pathcol="Doesn't Exist", pathdelim="/"
         )
+
+
+def test_fail_notapage():
+    myapp = nbappinator.TabbedUiModel(
+        pages=["First Tab"], log_footer="Messages", headers=["Config"]
+    )
+    with pytest.raises(ValueError):
+        myapp.get_page("asdasdTable")
