@@ -33,7 +33,8 @@ jobs:
         run: |
           coverage erase
           # --coverage is a bit redundant, but passes a flag to the tests
-          coverage run -m pytest -n auto --coverage
+          # disabled xdist: -n auto 
+          coverage run -m pytest --coverage
           coverage combine
           coverage report
       - name: Python Coverage Comment

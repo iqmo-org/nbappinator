@@ -60,3 +60,11 @@ myapp.get_page(1).add_select(name="choose1", label="Choose A Number", options=li
 # Render the app:
 myapp.display()
 ```
+
+# Testing Notes
+
+A significant portion of the tests are Notebook smoketests designed to exercise the code base in its entirety.
+
+The coverage report primarily reflects the percentage of the code base that the Notebooks exercise: but manual verification of the Notebook behavior is still required.
+
+Some assertions are baked into the Notebooks, but largely its intended to ensure that all the features are exercised.
