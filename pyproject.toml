@@ -1,9 +1,9 @@
 [project]
 name = "nbappinator"
-version = "0.1.1b1"
+version = "0.1.1"
 description = "Jupyter Notebook Application Builder"
-authors = [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
-maintainers =  [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
+authors = [{ name = "Paul T", email = "paul@iqmo.com" }]
+maintainers =  [{ name = "Paul T", email = "paul@iqmo.com" }]
 dependencies = ["ipywidgets~=7.8.0", "plotly", "ipyvuetify>=1.9", "ipyaggrid", "ipytree", "pandas>=1.5.3"]
 readme = "README.md"
 
