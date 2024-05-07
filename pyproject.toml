@@ -43,5 +43,4 @@ test = [
 
 [tool.setuptools]
 package-dir = {"" = "nbappinator"}
-include = ["readme_example.png"]
 
