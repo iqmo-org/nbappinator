@@ -8,10 +8,10 @@
 | nbappinator/aggridhelper.py   |       10 |        0 |     100% |           |
 | nbappinator/appinator.py      |      281 |        0 |     100% |           |
 | nbappinator/browser\_title.py |        8 |        0 |     100% |           |
-| nbappinator/datagrid.py       |      103 |        0 |     100% |           |
+| nbappinator/datagrid.py       |      107 |        0 |     100% |           |
 | nbappinator/plotly\_charts.py |       30 |        0 |     100% |           |
 | nbappinator/treew.py          |       39 |        0 |     100% |           |
-|                     **TOTAL** |  **474** |    **0** | **100%** |           |
+|                     **TOTAL** |  **478** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
