@@ -58,17 +58,3 @@ repos:
         pass_filenames: false
         always_run: false
         files: '.*\.(py|ipynb)$'
-  - repo: local
-    hooks:
-      # This hook isn't used
-      # pre-commit run nbval --hook-stage manual
-      #  pytest --nbval 1_readme_example.ipynb --sanitize-with nb_sanitize.cfg
-      - id: nbval
-        name: nbval
-        entry: pytest -n 4 --dist loadscope notebooks --nbval --nbval-sanitize-with notebooks/nb_sanitize.cfg
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: false
-        files: '.*\.(py|ipynb)$'
-        stages: [manual] # Disabling the hook
