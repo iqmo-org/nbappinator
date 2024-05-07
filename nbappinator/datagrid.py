@@ -9,6 +9,13 @@ from typing import Any, Callable, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
+# Set this to enable Enterprise features
+LICENSE = "community"
+
+
+def get_license():
+    return LICENSE
+
 
 @dataclass
 class ColMd:
@@ -189,10 +196,10 @@ class DataGrid(ag.Grid):
         num_toppinned_rows=0,
         flatten_columns=True,
         default_precision=2,
-        license="e",
         *argv,
         **kargv,
     ):
+        license = get_license()
         # if pathcol is not None:
         #    pathcol = pathcol.title()
         sortcols = False
