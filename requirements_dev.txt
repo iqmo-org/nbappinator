@@ -6,11 +6,11 @@ twine
 coverage
 pytest
 pytest-xdist
-pytest-cov
 nbformat
 nbconvert
 ipykernel
 seaborn
+
 # kaleido # kaleido / png exporting hanging. Disabled for now
 
 # for local dev
