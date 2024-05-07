@@ -28,22 +28,11 @@ typeCheckingMode = "basic"
 reportGeneralTypeIssues = false
 reportPrivateImportUsage = false
 
-[tool.commitizen]
-name = "cz_conventional_commits"
-tag_format = "v$version"
-version_scheme = "pep440"
-version_provider = "pep621"
-update_changelog_on_bump = true
-major_version_zero = true
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-xdist"
-]
+#[tools.setuptools]
+#packages = ["nbappinator"]
 
 [tool.setuptools.dynamic]
-version = {attr = "nbappinator.__version__"}
+version = {attr = "nbappinator.version.__version__"}
 
-[tool.setuptools.packages.find]
-where = ["nbappinator"]
-
+[tool.setuptools.package-dir]
+mypkg = "nbappinator"

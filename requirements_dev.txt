@@ -16,7 +16,6 @@ seaborn
 # for local dev
 pre-commit
 python-dotenv
-commitizen
 
 # for snapshot_mgr
 s3fs  
