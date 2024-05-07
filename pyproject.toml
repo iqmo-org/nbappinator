@@ -1,6 +1,6 @@
 [project]
 name = "nbappinator"
-version = "0.1.0"
+version = "0.1.1"
 description = "Jupyter Notebook Application Builder"
 authors = [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
 maintainers =  [{ name = "Paul Timmins", email = "paul@iqmo.com" }]
