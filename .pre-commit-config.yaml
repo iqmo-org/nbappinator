@@ -3,6 +3,11 @@ default_language_version:
 exclude: "^$"
 
 repos:
+  - repo: "https://github.com/commitizen-tools/commitizen"
+    rev: "v3.25.0"
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
   - repo: https://github.com/kynan/nbstripout
     rev: 0.7.1
     hooks:
