@@ -41,6 +41,6 @@ test = [
     "pytest-xdist"
 ]
 
-[tool.setuptools]
-package-dir = {"" = "nbappinator"}
+[tool.setuptools.packages.find]
+where = ["nbappinator"]
 
