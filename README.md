@@ -2,16 +2,16 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/iqmo-org/nbappinator/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                          |    Stmts |     Miss |   Cover |   Missing |
-|------------------------------ | -------: | -------: | ------: | --------: |
-| nbappinator/\_\_init\_\_.py   |        3 |        0 |    100% |           |
-| nbappinator/aggridhelper.py   |       10 |        0 |    100% |           |
-| nbappinator/appinator.py      |      281 |        2 |     99% |   218-222 |
-| nbappinator/browser\_title.py |        8 |        0 |    100% |           |
-| nbappinator/datagrid.py       |      103 |        0 |    100% |           |
-| nbappinator/plotly\_charts.py |       33 |       21 |     36% |15-16, 26-61 |
-| nbappinator/treew.py          |       39 |        0 |    100% |           |
-|                     **TOTAL** |  **477** |   **23** | **95%** |           |
+| Name                          |    Stmts |     Miss |    Cover |   Missing |
+|------------------------------ | -------: | -------: | -------: | --------: |
+| nbappinator/\_\_init\_\_.py   |        3 |        0 |     100% |           |
+| nbappinator/aggridhelper.py   |       10 |        0 |     100% |           |
+| nbappinator/appinator.py      |      281 |        0 |     100% |           |
+| nbappinator/browser\_title.py |        8 |        0 |     100% |           |
+| nbappinator/datagrid.py       |      103 |        0 |     100% |           |
+| nbappinator/plotly\_charts.py |       30 |        0 |     100% |           |
+| nbappinator/treew.py          |       39 |        0 |     100% |           |
+|                     **TOTAL** |  **474** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
