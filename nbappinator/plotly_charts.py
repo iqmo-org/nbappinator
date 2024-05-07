@@ -39,6 +39,9 @@ def create_widget(
         fig.layout.width = width
 
     if png:
+        raise ValueError(
+            "Not supported at this time due to kaleido hanging on some environments."
+        )
         import kaleido  # type: ignore  # noqa
 
         # Kaleido is only required if png generation is needed. This ensures it is installed.

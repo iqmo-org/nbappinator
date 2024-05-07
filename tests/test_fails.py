@@ -1,6 +1,8 @@
 import pytest
 import pandas as pd
 import nbappinator
+import nbappinator.plotly_charts
+import plotly.express as px
 
 
 def test_fail_invalidselectoption():
@@ -33,3 +35,10 @@ def test_fail_notapage():
     )
     with pytest.raises(ValueError):
         myapp.get_page("asdasdTable")
+
+
+def test_fail_plotlypng():
+    df = pd.DataFrame({"col1": range(10), "col2": range(10)})
+    fig = px.line(df, x="col1", y="col2")
+    with pytest.raises(ValueError):
+        nbappinator.plotly_charts.create_widget(fig=fig, setcolors=True, png=True)

@@ -11,7 +11,7 @@ nbformat
 nbconvert
 ipykernel
 seaborn
-kaleido
+# kaleido # kaleido / png exporting hanging. Disabled for now
 
 # for local dev
 pre-commit
