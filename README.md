@@ -19,7 +19,7 @@ nbappinator has three goals:
 
 # Example
 
-![Example](readme_example.png)
+<!--![Example](readme_example.png)-->
 
 # Getting Started
 

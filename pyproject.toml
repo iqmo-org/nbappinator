@@ -28,11 +28,8 @@ typeCheckingMode = "basic"
 reportGeneralTypeIssues = false
 reportPrivateImportUsage = false
 
-#[tools.setuptools]
-#packages = ["nbappinator"]
-
 [tool.setuptools.dynamic]
 version = {attr = "nbappinator.version.__version__"}
 
-[tool.setuptools.package-dir]
-mypkg = "nbappinator"
+[tool.setuptools]
+packages = ["nbappinator"]
