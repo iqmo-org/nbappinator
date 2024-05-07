@@ -1,6 +1,6 @@
 [project]
 name = "nbappinator"
-version = "0.1.5b1"
+version = "0.1.4"
 description = "Jupyter Notebook Application Builder"
 authors = [{ name = "Paul T", email = "paul@iqmo.com" }]
 maintainers =  [{ name = "Paul T", email = "paul@iqmo.com" }]
@@ -28,6 +28,13 @@ typeCheckingMode = "basic"
 reportGeneralTypeIssues = false
 reportPrivateImportUsage = false
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = true
+major_version_zero = true
 [project.optional-dependencies]
 test = [
     "pytest",
@@ -37,3 +44,4 @@ test = [
 [tool.setuptools]
 package-dir = {"" = "nbappinator"}
 include = ["readme_example.png"]
+
