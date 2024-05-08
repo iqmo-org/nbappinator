@@ -171,6 +171,7 @@ class UiPage:
         name: Optional[str] = None,
     ):
         w = v.Html(tag="pre", children=[value], style_="max-height:80vh")
+
         return self.add(
             elements=UiWidget(w=w, name=name),
         )
@@ -181,6 +182,8 @@ class UiPage:
         name: Optional[str] = None,
     ):
         w = ipywidgets.Output()
+        w.add_class("messages_style")
+
         if max_outputs is not None:
             w.max_outputs = max_outputs  # type: ignore
 
@@ -643,9 +646,12 @@ class TabbedUiModel(UiModel):
                     tag="style",
                     children=[
                         """
-    .vuetify-styles code, .vuetify-styles kbd, .vuetify-styles pre, .vuetify-styles samp{
+    .vuetify-styles code, .vuetify-styles kbd, .vuetify-styles samp{
         color: black !important
     }
+    
+    // .vuetify-styles pre
+
     .v-tabs div{
         transition: none !important;
     }
@@ -672,6 +678,10 @@ class TabbedUiModel(UiModel):
 
     .ag-header {
         position: relative;
+    }
+
+    .messages_style {
+        color: pink; !important;
     }
 
    
