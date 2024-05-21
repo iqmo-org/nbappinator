@@ -20,9 +20,6 @@ Issues = "https://github.com/iqmo-org/nbappinator/issues"
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.ruff.lint]
-ignore-init-module-imports = true
-
 [tool.pyright]
 typeCheckingMode = "basic"
 reportGeneralTypeIssues = false
@@ -33,3 +30,17 @@ version = {attr = "nbappinator.version.__version__"}
 
 [tool.setuptools]
 packages = ["nbappinator"]
+
+[tool.ruff]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    "versioneer.py",
+    "docs/source/conf.py"]
+
+[tool.ruff.lint]
+# pyflakes, pycodestyle, isort
+select = ["F", "E", "W", "I001"]
+ignore-init-module-imports = true
