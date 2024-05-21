@@ -6,6 +6,9 @@
 [run]
 relative_files = true
 parallel = true
+source = nbappinator
 omit = 
     */*ipykernel*/*
     tests/*
+
+sigterm = true  # Still testing, but seems to be needed on linux for the ipynb tests  

@@ -1,6 +1,7 @@
+set COVERAGE_PROCESS_START=%cd%\.coveragerc
+
+echo COVERAGE_PROCESS_START=%COVERAGE_PROCESS_START%
 coverage erase
-coverage run -m pytest -n 10 --coverage
-rem disabled because of inconsistent results
-rem pytest --cov=nbappinator -n 10
+pytest --cov=nbappinator -n 10 --coverage
 coverage combine
 coverage report -m
