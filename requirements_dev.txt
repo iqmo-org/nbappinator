@@ -5,6 +5,7 @@ twine
 # For testing
 coverage
 pytest
+pytest-cov
 pytest-xdist
 nbformat
 nbconvert
