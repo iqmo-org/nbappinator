@@ -1,4 +1,5 @@
-# coverage run -m pytest
+# coverage erase
+# ... run tests ...
 # coverage combine
 # coverage report -m 
 
@@ -11,4 +12,5 @@ omit =
     */*ipykernel*/*
     tests/*
 
-sigterm = true  # Still testing, but seems to be needed on linux for the ipynb tests  
+# Still testing sigterm, but seems to be needed on linux for the ipynb tests  
+sigterm = true

@@ -32,8 +32,8 @@ jobs:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           coverage erase
-          #pytest --cov=nbappinator -n 4 
-          coverage run -m pytest -n 4 --coverage
+          pytest --cov=nbappinator -n auto 
+          # coverage run -m pytest -n 4
           coverage combine
           coverage report -m
       - name: Python Coverage Comment
