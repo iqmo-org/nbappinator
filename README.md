@@ -9,6 +9,7 @@
 | nbappinator/appinator.py      |      282 |        0 |     100% |           |
 | nbappinator/browser\_title.py |        8 |        0 |     100% |           |
 | nbappinator/datagrid.py       |      107 |        0 |     100% |           |
+| nbappinator/jinjamagic.py     |        0 |        0 |     100% |           |
 | nbappinator/plotly\_charts.py |       30 |        0 |     100% |           |
 | nbappinator/treew.py          |       39 |        0 |     100% |           |
 | nbappinator/version.py        |        2 |        0 |     100% |           |
