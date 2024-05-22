@@ -34,7 +34,7 @@ jobs:
           coverage erase
           pytest --cov=nbappinator -n auto 
           # coverage run -m pytest -n 4
-          coverage combine
+          # coverage combine: not needed if all running within `pytest-cov`
           coverage report -m
       - name: Python Coverage Comment
         uses: py-cov-action/python-coverage-comment-action@v3.23
