@@ -4,16 +4,16 @@
 
 | Name                          |    Stmts |     Miss |    Cover |   Missing |
 |------------------------------ | -------: | -------: | -------: | --------: |
-| nbappinator/\_\_init\_\_.py   |        4 |        0 |     100% |           |
+| nbappinator/\_\_init\_\_.py   |        5 |        0 |     100% |           |
 | nbappinator/aggridhelper.py   |       10 |        0 |     100% |           |
-| nbappinator/appinator.py      |      282 |        0 |     100% |           |
+| nbappinator/appinator.py      |      283 |        0 |     100% |           |
 | nbappinator/browser\_title.py |        8 |        0 |     100% |           |
 | nbappinator/datagrid.py       |      107 |        0 |     100% |           |
 | nbappinator/jinjamagic.py     |        0 |        0 |     100% |           |
 | nbappinator/plotly\_charts.py |       30 |        0 |     100% |           |
 | nbappinator/treew.py          |       39 |        0 |     100% |           |
 | nbappinator/version.py        |        2 |        0 |     100% |           |
-|                     **TOTAL** |  **482** |    **0** | **100%** |           |
+|                     **TOTAL** |  **484** |    **0** | **100%** |           |
 
 
 ## Setup coverage badge
