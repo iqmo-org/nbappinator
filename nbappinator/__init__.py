@@ -1,6 +1,8 @@
+from .browser_title import BrowserTitle  # noqa: I001
+
+from .appinator import SelectTypes, TabbedUiModel, UiModel, UiPage, UiWidget
+from .datagrid import ColMd
 from .version import __version__
-from .browser_title import BrowserTitle
-from .appinator import TabbedUiModel, UiModel, UiPage, SelectTypes, UiWidget
 
 __all__ = [
     "__version__",
@@ -10,4 +12,5 @@ __all__ = [
     "BrowserTitle",
     "SelectTypes",
     "UiWidget",
+    "ColMd",
 ]

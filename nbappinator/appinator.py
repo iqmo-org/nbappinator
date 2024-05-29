@@ -1,23 +1,20 @@
 import enum
-import logging
 import io
-
-from functools import partial
+import logging
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Union, Annotated, ContextManager
+from functools import partial
+from typing import Annotated, Callable, ContextManager, Dict, List, Optional, Union
 
 import ipytree
 import ipyvuetify as v
 import ipywidgets
+import traitlets
+from IPython.display import display
 from ipyvuetify import Tab, TabItem
 from ipywidgets import Widget
-from IPython.display import display
-import traitlets
 
-from . import BrowserTitle
+from . import BrowserTitle, datagrid, treew
 from . import aggridhelper as g
-from . import treew
-from . import datagrid
 from . import plotly_charts as pcharts
 
 logger = logging.getLogger(__name__)
@@ -48,7 +45,9 @@ class UiPage:
     def clear(self):
         p = self.widget
         if p is not None:
-            # TODO: Remove from self.widgets. Not critical, since widgets are overwritten by key value
+            # TODO: Remove from self.widgets. Not critical, since
+            # widgets are overwritten
+            # by key value
             p.children = []  # type: ignore
 
     def add(self, elements: Union[UiWidget, List[UiWidget]]):
@@ -60,8 +59,9 @@ class UiPage:
 
         Args:
             page (str): App page to add this box to
-            name (str): A globally unique name for the box widget, so it can be later modified
-            horiz (bool, optional): Horizontal or Vertical. Defaults to False (Vertical).
+            name (str): A globally unique name for the box widget, so it can \
+                be later modified
+            horiz (bool, optional): Horizontal or Vertical. Defaults to False (Vertical)
 
         Returns:
             _type_: _description_
@@ -198,7 +198,6 @@ class UiPage:
         height=1024,
         name: Optional[str] = None,
     ):
-
         buf = io.BytesIO()
         plt.fig.savefig(buf, format="png")
         image_widget = ipywidgets.widgets.Image(
@@ -238,7 +237,6 @@ class UiPage:
         horiz: bool = False,
         name: Optional[str] = None,
     ):
-
         if type == SelectTypes.dropdown:
             w = v.Select(
                 label=label,
@@ -292,10 +290,15 @@ class UiPage:
         Args:
             page (str): The tab (page) or the container to add the button to.
             name (str): Internal name used to reference the button widget
-            action (Callable): Callable that is executed when button is clicked. Must take four parameters: component, action, args, app, and caller.
-            disabled (bool, optional): A disabled button cannot be clicked. Defaults to False.
-            status (bool, optional): Adds a status field to the right of the button. Useful for showing feedback to user of application process. Defaults to False.
-            label (Optional[str], optional): Label to show to side of button. Defaults to None.
+            action (Callable): Callable that is executed when button is clicked. Must \
+                take four parameters: component, action, args, app, and caller.
+            disabled (bool, optional): A disabled button cannot be clicked. \
+                Defaults to False.
+            status (bool, optional): Adds a status field to the right of the button. \
+                Useful for showing feedback to user of application process. \
+                    Defaults to False.
+            label (Optional[str], optional): Label to show to side of button. \
+                Defaults to None.
 
         Returns:
             _type_: _description_
@@ -400,7 +403,6 @@ class UiPage:
         html: str,
         name: Optional[str],
     ):
-
         ho = HTMLOutput()
         ho.html = html
         w = UiWidget(name=name, w=ho)
@@ -409,7 +411,6 @@ class UiPage:
 
 @dataclass
 class UiModel:
-
     pages: List[str]
 
     log_page: Optional[str] = None
@@ -470,11 +471,16 @@ class UiModel:
 
             page.children = (*children, *newchildren)  # type: ignore
 
-    def get_page(self, title: Union[str, int]):
+    def get_container(self, name: str) -> "UiPage":
+        w = self.containers[name]
+        return UiPage(self, name, w)  # type: ignore
+
+    def get_page(self, title: Union[str, int]) -> UiPage:
         """
 
         Args:
-            title (Union[str, int]): If int, returns the page at the offset given from self.pages. If str, returns the page by name
+            title (Union[str, int]): If int, returns the page at the offset given from \
+                self.pages. If str, returns the page by name
 
         Raises:
             ValueError: An error if the input is not a Page
@@ -649,25 +655,25 @@ class TabbedUiModel(UiModel):
     .vuetify-styles code, .vuetify-styles kbd, .vuetify-styles samp{
         color: black !important
     }
-    
+
     // .vuetify-styles pre
 
     .v-tabs div{
         transition: none !important;
     }
-    
+
     .for-progress .v-text-field__details{
         display: none !important;
     }
-    
+
     .for-progress .v-input__control{
         min-height: 0px !important;
     }
-    
+
     .for-progress input{
         text-align: center;
     }
-    
+
     .progress-bar{
         margin-left: 10px
     }
@@ -684,7 +690,7 @@ class TabbedUiModel(UiModel):
         color: pink; !important;
     }
 
-   
+
                 """
                     ],
                 ),
@@ -711,7 +717,7 @@ class ThemeFixer:
         return """<script>
                     if (window.location.href.indexOf('voila') >= 0){
                         const l=document.createElement('link');
-                        l.setAttribute('rel','stylesheet');  
+                        l.setAttribute('rel','stylesheet');
                         l.setAttribute('type','text/css');
                         l.setAttribute('href',`${window.location.href.split('/').slice(0,7).join('/')}/static/theme-light.css`);
                         document.body.appendChild(l);

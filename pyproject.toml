@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "Jupyter Notebook Application Builder"
 authors = [{ name = "Paul T", email = "paul@iqmo.com" }]
 maintainers =  [{ name = "Paul T", email = "paul@iqmo.com" }]
-dependencies = ["ipywidgets>=7.8,<=8.0", "plotly", "ipyvuetify>=1.9", "ipyaggrid", "ipytree", "pandas>=1.5.3"]
+dependencies = ["ipywidgets>=7.8", "plotly", "ipyvuetify>=1.9", "ipyaggrid", "ipytree", "pandas>=1.5.3"]
 requires-python = ">=3.9"
 
 [project.readme]
