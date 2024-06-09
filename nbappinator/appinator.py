@@ -3,6 +3,7 @@ import io
 import logging
 from dataclasses import dataclass, field
 from functools import partial
+from inspect import signature
 from typing import Annotated, Callable, ContextManager, Dict, List, Optional, Union
 
 import ipytree
@@ -102,9 +103,7 @@ class UiPage:
         delim: str = PATHDELIM,
         name: Optional[str] = None,
     ):
-        w = treew.w_tree_paths(
-            paths=paths, pathdelim=delim if delim is not None else PATHDELIM
-        )
+        w = treew.w_tree_paths(paths=paths, pathdelim=delim if delim is not None else PATHDELIM)
         self.add(
             elements=UiWidget(w=w, name=name),
         )
@@ -147,9 +146,7 @@ class UiPage:
         self,
         name: Optional[str] = None,
     ):
-        w = v.ProgressLinear(
-            class_="progress-bar", width=0, color="blue", indeterminate=True
-        )
+        w = v.ProgressLinear(class_="progress-bar", width=0, color="blue", indeterminate=True)
         w.hide()
         self.add(
             elements=UiWidget(w=w, name=name),
@@ -200,9 +197,7 @@ class UiPage:
     ):
         buf = io.BytesIO()
         plt.fig.savefig(buf, format="png")
-        image_widget = ipywidgets.widgets.Image(
-            value=buf.getvalue(), format="png", width=width, height=height
-        )
+        image_widget = ipywidgets.widgets.Image(value=buf.getvalue(), format="png", width=width, height=height)
 
         return self.add(
             elements=UiWidget(w=image_widget, name=name),
@@ -217,13 +212,52 @@ class UiPage:
         setcolors=True,
         name: Optional[str] = None,
     ):
-        w = pcharts.create_widget(
-            fig=fig, setcolors=setcolors, height=height, width=width, png=png
-        )
+        w = pcharts.create_widget(fig=fig, setcolors=setcolors, height=height, width=width, png=png)
 
         return self.add(
             elements=UiWidget(w=w, name=name),
         )
+
+    def _make_action(self, caller_name: Optional[str], func: Callable) -> Callable:
+        # Actions require 5 parameters. ALlow these parameters to be optional
+        # component: str, action: str, args: str, app: nbapp.UiModel, caller: str
+
+        # Make sure the function is a subset of expected keywords
+        expected_keywords = {"component", "action", "args", "app", "caller"}
+        keywords = set(signature(func).parameters.keys())
+        unexpected_keywords = keywords - expected_keywords
+        if unexpected_keywords:
+            raise ValueError(
+                f"{func.__name__} had an unexpected keywords: {unexpected_keywords}. Only \
+                    {expected_keywords} were expected"
+            )
+
+        if len(keywords) != 5:
+            logger.info(
+                f"Action {func.__name__} does not have all five expected \
+                    keywords, wrapping"
+            )
+
+            def func_wrapper(*args, **kwargs):
+                # ipyvuetify passes 3 positional args: component, action, args
+
+                new_kwargs = {}
+                if "component" in keywords:
+                    new_kwargs["component"] = args[0]
+                if "action" in keywords:
+                    new_kwargs["action"] = args[1]
+                if "args" in keywords:
+                    new_kwargs["args"] = args[2]
+                if "app" in keywords:
+                    new_kwargs["app"] = self.app
+                if "caller" in keywords:
+                    new_kwargs["caller"] = caller_name
+
+                return func(**new_kwargs)
+
+            return func_wrapper
+        else:
+            return partial(func, app=self.app, caller=caller_name)
 
     def add_select(
         self,
@@ -270,9 +304,9 @@ class UiPage:
             raise ValueError(f"Unexpected type: {type}")
 
         if action is not None:
-            # Use partial to pass the app & the caller name
-            action = partial(action, app=self.app, caller=name)
+            action = self._make_action(name, action)
             w.on_event("change", action)
+
         return self.add(
             elements=UiWidget(w=w, name=name),
         )
@@ -316,8 +350,7 @@ class UiPage:
         b = v.Btn(children=[label], disabled=disabled, outlined=True)
 
         if action is not None:
-            # Use partial to pass the app & the caller name
-            action = partial(action, app=self.app, caller=name)
+            action = self._make_action(name, action)
             b.on_event("click", action)
 
         if status_box:
@@ -532,9 +565,7 @@ class TabbedUiModel(UiModel):
         children = []
         if self.headers is not None:
             for header in self.headers:
-                self._page_widgets[header] = UiPage(
-                    app=self, name=header, widget=v.ExpansionPanelContent(children=[])
-                )
+                self._page_widgets[header] = UiPage(app=self, name=header, widget=v.ExpansionPanelContent(children=[]))
                 self._headerWidget = v.ExpansionPanels(
                     children=[
                         v.ExpansionPanel(
@@ -585,17 +616,13 @@ class TabbedUiModel(UiModel):
         if self.title is not None:
             BrowserTitle(self.title)
 
-    def add_page(
-        self, title: str, children: List = [], selected_tab=True
-    ) -> ipywidgets.Widget:
+    def add_page(self, title: str, children: List = [], selected_tab=True) -> ipywidgets.Widget:
         self.pages.append(title)
 
         tab_children = [*self._tabWidget.children]
 
         t = Tab(children=[title])
-        ti = TabItem(
-            children=children, style_="padding-left: 20px; padding-right: 20px;"
-        )
+        ti = TabItem(children=children, style_="padding-left: 20px; padding-right: 20px;")
         tab_children.append(t)
         tab_children.append(ti)
         self._page_widgets[title] = UiPage(app=self, name=title, widget=ti)
