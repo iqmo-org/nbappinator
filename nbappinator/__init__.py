@@ -2,7 +2,7 @@ from .browser_title import BrowserTitle  # noqa: I001
 
 from .appinator import SelectTypes, TabbedUiModel, UiModel, UiPage, UiWidget
 from .datagrid import ColMd
-from .version import __version__
+from ._version import __version__
 
 __all__ = [
     "__version__",
