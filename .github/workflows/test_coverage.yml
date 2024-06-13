@@ -33,7 +33,6 @@ jobs:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
           poetry run poetry run coverage erase
-          poetry run pip install tests/simulators/bql_simulator
           poetry run pytest --cov=nbappinator -n auto 
           poetry run coverage report -m
           poetry build
