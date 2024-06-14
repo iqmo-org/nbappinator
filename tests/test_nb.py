@@ -17,8 +17,7 @@ logger = logging.getLogger(__name__)
     [
         f
         for f in NOTEBOOK_DIR.glob(SEARCH)
-        if f.name not in SKIP_NOTEBOOKS
-        and ".ipynb_checkpoints" not in str(f.absolute())
+        if f.name not in SKIP_NOTEBOOKS and ".ipynb_checkpoints" not in str(f.absolute())
     ],
 )
 def test_notebook_execution(notebook: Path, pytestconfig):
@@ -64,8 +63,8 @@ def test_notebook_execution(notebook: Path, pytestconfig):
     with notebook.open() as f:
         nb = nbformat.read(f, as_version=4)
 
-    coverage_env = os.environ["COVERAGE_PROCESS_START"]
-    logger.debug(f"Instrumenting {f} for coverage")
+    coverage_env = os.environ.get("COVERAGE_PROCESS_START")
+    logger.debug("Instrumenting %s for coverage", f)
     if coverage_env:
         coverage_cell = f"""
         import os
