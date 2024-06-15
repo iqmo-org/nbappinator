@@ -44,6 +44,7 @@ universal-pathlib = "^0.2.2"
 pre-commit = "^3.7.1"
 python-dotenv = "^1.0.1"
 
+
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
@@ -73,3 +74,8 @@ ignore = [
     "E501",
     "S608", 
     "PD901"]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+# style = "semver"
