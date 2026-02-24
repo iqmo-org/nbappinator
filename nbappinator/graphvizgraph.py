@@ -15,6 +15,7 @@ class GraphvizGraph(anywidget.AnyWidget):
     engine = traitlets.Unicode("dot").tag(sync=True)
     scale = traitlets.Float(0.75).tag(sync=True)
     fit_width = traitlets.Bool(True).tag(sync=True)
+    show_labels = traitlets.Bool(True).tag(sync=True)
 
     _esm = r"""
     import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.js";
@@ -27,6 +28,7 @@ class GraphvizGraph(anywidget.AnyWidget):
         const engine = model.get("engine");
         const scale = model.get("scale");
         const fitWidth = model.get("fit_width");
+        const showLabels = model.get("show_labels");
 
         // Detect dark mode
         const isDark = window.getComputedStyle(document.body).backgroundColor
@@ -190,6 +192,13 @@ class GraphvizGraph(anywidget.AnyWidget):
                     });
                 }
 
+                // Hide labels if showLabels is false
+                if (!showLabels) {
+                    svgEl.querySelectorAll("text").forEach(t => {
+                        t.style.display = "none";
+                    });
+                }
+
                 // Setup D3 zoom/pan
                 const svg = d3.select(svgEl);
                 const g = svg.select("g");
@@ -313,6 +322,7 @@ def create_graphviz_widget(
     graph_attr: Optional[dict] = None,
     scale: float = 0.75,
     fit_width: bool = True,
+    show_labels: bool = True,
 ) -> GraphvizGraph:
     """
     Create a Graphviz widget from a NetworkX graph.
@@ -335,6 +345,7 @@ def create_graphviz_widget(
         graph_attr: Graph-level attributes
         scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
         fit_width: If True, graph fills container width (default True)
+        show_labels: If True, show node/edge labels (default True)
 
     Returns:
         GraphvizGraph widget
@@ -348,4 +359,5 @@ def create_graphviz_widget(
         engine=engine,
         scale=scale,
         fit_width=fit_width,
+        show_labels=show_labels,
     )

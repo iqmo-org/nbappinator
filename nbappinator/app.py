@@ -380,6 +380,7 @@ class Page:
         graph_attr: Optional[dict] = None,
         scale: float = 0.75,
         fit_width: bool = True,
+        show_labels: bool = True,
     ) -> "Page":
         """Add a Graphviz graph visualization.
 
@@ -402,6 +403,7 @@ class Page:
             graph_attr: Graph-level attributes (e.g., {"rankdir": "LR"})
             scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
             fit_width: If True, graph fills container width (default True)
+            show_labels: If True, show node/edge labels (default True)
         """
         w = graphvizgraph.create_graphviz_widget(
             nx_graph=graph,
@@ -413,6 +415,7 @@ class Page:
             graph_attr=graph_attr,
             scale=scale,
             fit_width=fit_width,
+            show_labels=show_labels,
         )
         return self._add_widget(w, name)
 
