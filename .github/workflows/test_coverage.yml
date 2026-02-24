@@ -15,31 +15,30 @@ jobs:
       contents: write
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Install poetry
-        run: |
-          pipx install poetry
-          pipx inject poetry "poetry-dynamic-versioning[plugin]"
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
-          cache: 'poetry'
+          enable-cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
       - name: Install dependencies
+        run: uv sync --all-groups
+      - name: Build package
         run: |
-          poetry install --with dev
-      - name: Run tests with coverage
+          uv build
+      - name: Run tests with coverage and Build
         env:
           COVERAGE_PROCESS_START: ${{ github.workspace }}/.coveragerc
         run: |
-          poetry run poetry run coverage erase
-          poetry run pytest --cov=nbappinator -n auto 
-          poetry run coverage report -m
-          poetry build
-      - name: Python Coverage Comment
+          uv run coverage erase
+          uv run pytest --cov=nbappinator -n auto --cov-report=
+          uv run coverage report -m
+      - name: Python Coverage Comment if main
         if: github.ref == 'refs/heads/main'
-        uses: py-cov-action/python-coverage-comment-action@v3.23
+        uses: py-cov-action/python-coverage-comment-action@v3.38
         with:
           GITHUB_TOKEN: ${{ github.token }}
