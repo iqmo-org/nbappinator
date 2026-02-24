@@ -1,11 +1,10 @@
-import logging
 import json
-import pandas as pd
+import logging
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import ipyaggrid as ag
-from typing import List, Dict, Literal, Optional
-from typing import Any, Callable, Tuple, Union
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +105,8 @@ def _addcol(
                     try {
                         if (node === null || node.value === null) {
                             return null;
-                        } 
-                        
+                        }
+
                         let result = null;
                         let suffix = null;
                         if (node.value >= 0 && node.value <1000) {
@@ -131,7 +130,7 @@ def _addcol(
                 + """, maximumFractionDigits: """
                 + str(precision)
                 + """  }) + suffix;
-                            
+
                         return result_round;                    
                     } catch (error) {
                         console.log(error);
@@ -188,17 +187,25 @@ class DataGrid(ag.Grid):
         events=None,
         pathcol: Optional[str] = "path",
         pathdelim="/",
-        col_md: List[ColMd] = [],
+        col_md: Optional[List[ColMd]] = None,
         showindex: bool = False,
-        js_post_grid: List = [],
-        js_pre_grid: List = [],
-        grid_options: Dict = {},
+        js_post_grid: Optional[List] = None,
+        js_pre_grid: Optional[List] = None,
+        grid_options: Optional[Dict] = None,
         num_toppinned_rows=0,
         flatten_columns=True,
         default_precision=2,
         *argv,
         **kargv,
     ):
+        if col_md is None:
+            col_md = []
+        if js_post_grid is None:
+            js_post_grid = []
+        if js_pre_grid is None:
+            js_pre_grid = []
+        if grid_options is None:
+            grid_options = {}
         license = get_license()
         # if pathcol is not None:
         #    pathcol = pathcol.title()
@@ -257,7 +264,6 @@ class DataGrid(ag.Grid):
                     console.log(data);
                     return [];
                 }}}}
-                
                 """
 
         # Create a GridOptions object
@@ -268,9 +274,7 @@ class DataGrid(ag.Grid):
 
         else:
             grid_data_df = input_df[num_toppinned_rows:]
-            pinned_top_row_data_df = input_df[0:num_toppinned_rows].to_dict(
-                orient="records"
-            )  # type: ignore
+            pinned_top_row_data_df = input_df[0:num_toppinned_rows].to_dict(orient="records")  # type: ignore
 
         args = {
             "license": license,
@@ -374,7 +378,6 @@ class DataGrid(ag.Grid):
                 }*/
                 let first=true;
                 gridOptions.onGridSizeChanged=  function onFirstDataRendered(params) {
-                
                 if(first){
                       params.columnApi.autoSizeAllColumns();
                 }
@@ -389,9 +392,7 @@ class DataGrid(ag.Grid):
 
         self.message_handlers = []
 
-        def msg_rx(
-            _, msg, buffers
-        ):  # pragma: no cover  # bypassing because only reached from js
+        def msg_rx(_, msg, buffers):  # pragma: no cover  # bypassing because only reached from js
             try:
                 self.process_message(msg)
             except Exception as e:
@@ -402,26 +403,26 @@ class DataGrid(ag.Grid):
 
     def process_message(self, msg: Any):
         logger.debug("Widget got message: %s", msg)
-        pMsg = msg
+        p_msg = msg
 
         # make sure its one of our events
-        if "type" not in pMsg or pMsg["type"] != "gridEvent" and "event_type" in pMsg:
+        if "type" not in p_msg or p_msg["type"] != "gridEvent" and "event_type" in p_msg:
             return
 
         if self._select_mode is not None:
-            if pMsg["event_type"] == "cellClicked" and "currentSelection" in pMsg:
-                self.current_selection = pMsg["currentSelection"]
+            if p_msg["event_type"] == "cellClicked" and "currentSelection" in p_msg:
+                self.current_selection = p_msg["currentSelection"]
 
         logger.debug("Checking message handler for %s", len(self.message_handlers))
         for handler, handle_msg_type in self.message_handlers:
             logger.debug(
                 "Checking message handler for %s and message type %s",
                 handle_msg_type,
-                pMsg["type"],
+                p_msg["type"],
             )
-            if handle_msg_type is None or pMsg["event_type"] == handle_msg_type:
+            if handle_msg_type is None or p_msg["event_type"] == handle_msg_type:
                 logger.debug("Calling handler")
-                handler(pMsg)
+                handler(p_msg)
 
     def on(
         self,

@@ -1,4 +1,5 @@
 import logging
+
 from ipytree import Node, Tree
 
 logger = logging.getLogger(__name__)
@@ -16,12 +17,12 @@ def w_tree_paths(paths: list[str], pathdelim):
 
     paths = sorted(paths)
     splitpaths = [p.split(pathdelim) for p in paths]
-    pathsz = zip(paths, splitpaths)
+    pathsz = zip(paths, splitpaths, strict=True)
 
     for ps, pl in pathsz:
-        plEnd = pl[-1]
-        nodeText = f'<span style="color: green;font-weight: italic;">{plEnd}</span>'
-        n = Node(nodeText)
+        pl_end = pl[-1]
+        node_text = f'<span style="color: green;font-weight: italic;">{pl_end}</span>'
+        n = Node(node_text)
 
         n.path = ps  # type: ignore
         if len(pl) > 1:

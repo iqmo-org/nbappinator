@@ -1,22 +1,23 @@
-from pathlib import Path
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
-from nbconvert import HTMLExporter
-from bs4 import BeautifulSoup as bs
+import argparse
+import difflib
 import json
 import re
-import difflib
-import argparse
+from pathlib import Path
 from typing import List
+
+import nbformat
+from bs4 import BeautifulSoup
+from nbconvert import HTMLExporter
+from nbconvert.preprocessors import ExecutePreprocessor
+
 from .env_helper import (
-    NOTEBOOK_DIR,
-    SKIP_NOTEBOOKS,
     BASELINE_DIR,
+    NOTEBOOK_DIR,
+    NOTEBOOK_TIMEOUT,
     RUNTIME_DIR,
     SEARCH,
-    NOTEBOOK_TIMEOUT,
+    SKIP_NOTEBOOKS,
 )
-
 
 # These are ids that should be replaced
 global_uuid_patterns = [
@@ -39,13 +40,13 @@ ignore_linep = re.compile("|".join(ignore_lines_patterns))
 
 
 def prettify(body: str) -> str:
-    soup = bs(body, "html.parser")
+    soup = BeautifulSoup(body, "html.parser")
     for script in soup.find_all("script"):
         if script.string:
             try:
                 json_object = json.loads(script.string)
                 pretty_json = json.dumps(json_object, indent=4)
-                script.string.replace_with(pretty_json)
+                script.string.replace_with(pretty_json)  # type: ignore[union-attr]
             except json.JSONDecodeError:
                 pass  # Not json, ignore
     pretty_html = soup.prettify()
@@ -68,7 +69,7 @@ def sanitize_ids(body: str) -> str:
     return body
 
 
-def generate_nbs(dir_path: Path, sanitize: bool):
+def generate_nbs(dir_path: "Path", sanitize: bool):
     """
     Runs all notebooks and stores their output in dir_path.
     Sanitize strips certain identifies from the document and replaces them globally.
@@ -83,7 +84,7 @@ def generate_nbs(dir_path: Path, sanitize: bool):
         if notebook.name not in SKIP_NOTEBOOKS:
             output_path: Path = dir_path / (notebook.name[0:-6] + ".html")
             print(f"Running {notebook} and writing HTML to {output_path}")
-            with open(notebook) as f:
+            with open(str(notebook)) as f:
                 nb = nbformat.read(f, as_version=4)
 
             ep = ExecutePreprocessor(timeout=NOTEBOOK_TIMEOUT)
@@ -104,7 +105,7 @@ def generate_nbs(dir_path: Path, sanitize: bool):
             print(f"Skipping {notebook}")
 
 
-def compare(file1: Path, file2: Path) -> List[str]:
+def compare(file1: "Path", file2: "Path") -> List[str]:
     """Using difflib, compares two files and returns a list of the changes.
     Lines that match the ignore_linep are skipped. Leading/trailing whitespace is ignored.
 
@@ -133,11 +134,7 @@ def compare(file1: Path, file2: Path) -> List[str]:
 
 
 def compare_all(report: bool):
-    base_files = [
-        f
-        for f in BASELINE_DIR.glob(SEARCH.replace(".ipynb", ".html"))
-        if f.name not in SKIP_NOTEBOOKS
-    ]
+    base_files = [f for f in BASELINE_DIR.glob(SEARCH.replace(".ipynb", ".html")) if f.name not in SKIP_NOTEBOOKS]
 
     # print(base_files)
     for f in base_files:
@@ -146,7 +143,7 @@ def compare_all(report: bool):
             raise ValueError(f"{compare_f} does not exist")
 
         else:
-            diff_report = compare(f, compare_f)
+            diff_report = compare(f, compare_f)  # type: ignore[arg-type]
 
             if len(diff_report) == 0:
                 print(f"{f}: matches")
@@ -180,10 +177,10 @@ def main():
 
     if args.generate_baseline:
         print(f"Generate baseline flag is set, {sanitize=}")
-        return generate_nbs(BASELINE_DIR, sanitize)
+        return generate_nbs(BASELINE_DIR, sanitize)  # type: ignore[arg-type]
     elif args.generate:
         print(f"Generate flag is set,  {sanitize=}")
-        return generate_nbs(RUNTIME_DIR, sanitize)
+        return generate_nbs(RUNTIME_DIR, sanitize)  # type: ignore[arg-type]
     elif args.compare:
         return compare_all(report)
     elif args.list:

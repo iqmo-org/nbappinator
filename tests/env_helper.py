@@ -1,5 +1,6 @@
-import dotenv
 import os
+
+import dotenv
 
 # universal_path extends PathLib to allow S3 paths
 from upath import UPath as Path
