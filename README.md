@@ -9,7 +9,7 @@
 
 # Introduction
 
-nbappinator streamlines Jupyter and Voila app development through a structured, opinionated framework for UI construction. Adding a button to a page is as simple as using app.page[0].add_button(...).
+nbappinator streamlines Jupyter and Voila app development through a structured, opinionated framework for UI construction. Adding a button to a tab is as simple as `app.tab(0).button("Run", on_click=callback)`.
 
 nbappinator has three goals:
 
@@ -24,34 +24,124 @@ nbappinator has three goals:
 # Getting Started
 
 ```py
-import nbappinator as nbapp
+import nbappinator as nb
 
-def my_action(component, action, args, app: nbapp.UiModel, caller: str):
+def my_action(app):
     with app.messages:
         print("This message will be written to the Messages footer")
-        app.get_page(0).add_textstatic("This is some text")
+        app.tab(0).label("This is some text")
 
-def choose_action(component, action, args, app: nbapp.UiModel, caller: str):
+def choose_action(app):
     with app.messages:
-        chosen_value = app.get_values(caller)
+        chosen_value = app["choose1"]
         print(f"You chose {chosen_value}")
-        app.get_page(1).add_textstatic(f"You chose {chosen_value}")
+        app.tab(1).label(f"You chose {chosen_value}")
 
 # Create a Tabbed UI comprised of three sections:
-# "Config" Header,  Tabbed Pages: "First Tab" and "Second Tab", and a "Messages" Footer
-myapp = nbapp.TabbedUiModel(pages=["First Tab", "Second Tab"], log_footer = "Messages", headers=["Config"])
-myapp.get_page("Config").add_textstatic("This is static text in the Config section of the page. You could add global settings, buttons and other widgets here.")
+# "Config" Header, Tabbed Pages: "First Tab" and "Second Tab", and a "Messages" Footer
+myapp = nb.App(tabs=["First Tab", "Second Tab"], footer="Messages", header="Config")
+myapp.config.label("This is static text in the Config section. Add global settings, buttons and other widgets here.")
 
 # Add a button to First Tab
-myapp.get_page(0).add_textstatic("This is the first tab")
-myapp.get_page(0).add_button(name="but1", label="Some button", action=my_action)
-myapp.get_page(0).add_textstatic("Click the button")
+myapp.tab(0).label("This is the first tab")
+myapp.tab(0).button("but1", on_click=my_action, label="Some button")
+myapp.tab(0).label("Click the button")
 
 # Add a dropdown selection to Second Tab
-myapp.get_page(1).add_select(name="choose1", label="Choose A Number", options=list(range(10)), action=choose_action)
+myapp.tab(1).select("choose1", options=list(range(10)), on_change=choose_action, label="Choose A Number")
 
 # Render the app:
 myapp.display()
+```
+
+## API Overview
+
+### Creating an App
+
+```py
+app = nb.App(
+    tabs=["Tab 1", "Tab 2"],  # Required: list of tab names
+    header="Config",          # Optional: collapsible header section
+    footer="Messages",        # Optional: collapsible footer (default)
+    title="My App",           # Optional: browser title
+)
+```
+
+### Accessing Sections
+
+```py
+app.config           # Header section (if configured)
+app.tab(0)           # Tab by index
+app.tab("Tab 1")     # Tab by name
+app.footer           # Footer section
+app.messages         # Output widget in footer for print statements
+```
+
+### Input Widgets
+
+All input widgets return the page for method chaining.
+
+```py
+page.select("name", options=["a", "b"], default="a", on_change=callback)
+page.combobox("name", options=["a", "b"])           # Select with text input
+page.slider("name", min_val=0, max_val=100, default=50)
+page.radio("name", options=["a", "b"], horizontal=True)
+page.text("name", default="", multiline=False)
+page.checkbox("name", default=False)
+page.button("name", on_click=callback, status=True)  # status=True adds progress indicator
+```
+
+### Display Widgets
+
+```py
+page.label("Static text")
+page.pre("Preformatted text")
+page.html("<b>HTML content</b>")
+page.separator(color="gray")
+page.output("name")                # Output area for print statements
+```
+
+### Data and Charts
+
+```py
+page.dataframe("name", df, on_click=callback, tree=True, tree_column="path")
+page.plotly(fig)
+page.matplotlib(fig)
+page.networkx(graph, layout="force")   # D3 force-directed graph
+page.tree("name", paths=["a~b~c"], delimiter="~")
+```
+
+### Layout
+
+```py
+row = page.row()       # Horizontal container
+row.button(...)
+col = page.column()    # Vertical container
+```
+
+### Callbacks
+
+Callbacks receive the app as their only argument:
+
+```py
+def my_callback(app):
+    value = app["widget_name"]       # Get widget value
+    app["widget_name"] = new_value   # Set widget value
+    app.status("Working...")         # Update button status
+    app.done("Complete")             # Mark button as done
+```
+
+### Button with Status
+
+```py
+app.config.button("Run", on_click=run_task, status=True)
+
+def run_task(app):
+    app.status("Loading data...")
+    # ... do work ...
+    app.status("Processing...")
+    # ... more work ...
+    app.done("Complete")
 ```
 
 # Deployment and BQuant
@@ -64,9 +154,11 @@ nbappinator builds on some great projects that provide useful building blocks in
 
 [ipyvuetify](https://ipyvuetify.readthedocs.io/en/latest/) provides the underlying UI widgets, bringing modern VUE components to Jupyter.
 
-[AG Grid](https://ag-grid.com/) is an excellent javascript grid library, which [ipyaggrid](https://github.com/widgetti/ipyaggrid) provides as an Jupyter extension.
+[AG Grid](https://ag-grid.com/) is an excellent javascript grid library, which [ipyaggrid](https://github.com/widgetti/ipyaggrid) provides as a Jupyter extension.
 
 [Plotly](https://plotly.com/) is given first class support, although any matplotlib charting library works, such as Seaborn.
+
+[D3.js](https://d3js.org/) powers the interactive NetworkX graph visualizations with force-directed layouts.
 
 This all builds on [Jupyter](https://jupyter.org/) and [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/).
 
