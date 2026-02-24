@@ -4,19 +4,19 @@ exclude: "^$"
 
 repos:
   - repo: https://github.com/kynan/nbstripout
-    rev: 0.7.1
+    rev: 0.9.1
     hooks:
       - id: nbstripout
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.4.9
+    rev: v0.15.2
     hooks:
       # Run the linter.
-      - id: ruff
+      - id: ruff-check
         types_or: [ python, pyi, jupyter ]
         args: [ --fix ]
       # Run the formatter.
