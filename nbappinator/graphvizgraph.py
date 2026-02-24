@@ -18,6 +18,7 @@ class GraphvizGraph(anywidget.AnyWidget):
 
     _esm = r"""
     import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.js";
+    import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
     export async function render({ model, el }) {
         const dotSource = model.get("dot_source");
@@ -41,25 +42,60 @@ class GraphvizGraph(anywidget.AnyWidget):
             position: relative;
             display: block;
             width: ${fitWidth ? '100%' : width + 'px'};
-            min-height: ${height}px;
+            height: ${height}px;
             border: 1px solid ${borderColor};
             background: ${bgColor};
-            overflow: auto;
+            overflow: hidden;
         `;
 
-        // Create fullscreen toggle button
+        // Create toolbar with buttons
+        const toolbar = document.createElement("div");
+        toolbar.style.cssText = `
+            position: absolute; top: 8px; right: 8px; z-index: 1000;
+            display: flex; gap: 4px;
+        `;
+
+        const btnStyle = `
+            width: 28px; height: 28px; font-size: 14px;
+            border: 1px solid ${borderColor}; border-radius: 4px;
+            background: ${bgColor}; color: ${textColor};
+            cursor: pointer; opacity: 0.8;
+        `;
+
+        // Reset zoom button
+        const resetBtn = document.createElement("button");
+        resetBtn.innerHTML = "⟲";
+        resetBtn.title = "Reset zoom";
+        resetBtn.style.cssText = btnStyle;
+
+        // Zoom in button
+        const zoomInBtn = document.createElement("button");
+        zoomInBtn.innerHTML = "+";
+        zoomInBtn.title = "Zoom in";
+        zoomInBtn.style.cssText = btnStyle;
+
+        // Zoom out button
+        const zoomOutBtn = document.createElement("button");
+        zoomOutBtn.innerHTML = "−";
+        zoomOutBtn.title = "Zoom out";
+        zoomOutBtn.style.cssText = btnStyle;
+
+        // Fullscreen button
         const fsBtn = document.createElement("button");
         fsBtn.innerHTML = "⛶";
         fsBtn.title = "Toggle fullscreen";
-        fsBtn.style.cssText = `
-            position: absolute; top: 8px; right: 8px; z-index: 1000;
-            width: 28px; height: 28px; font-size: 16px;
-            border: 1px solid ${borderColor}; border-radius: 4px;
-            background: ${bgColor}; color: ${textColor};
-            cursor: pointer; opacity: 0.7;
-        `;
-        fsBtn.onmouseenter = () => fsBtn.style.opacity = "1";
-        fsBtn.onmouseleave = () => fsBtn.style.opacity = "0.7";
+        fsBtn.style.cssText = btnStyle;
+
+        toolbar.appendChild(resetBtn);
+        toolbar.appendChild(zoomOutBtn);
+        toolbar.appendChild(zoomInBtn);
+        toolbar.appendChild(fsBtn);
+
+        // Add hover effects
+        [resetBtn, zoomInBtn, zoomOutBtn, fsBtn].forEach(btn => {
+            btn.onmouseenter = () => btn.style.opacity = "1";
+            btn.onmouseleave = () => btn.style.opacity = "0.8";
+        });
 
         let isFullscreen = false;
         fsBtn.onclick = () => {
@@ -67,7 +103,7 @@ class GraphvizGraph(anywidget.AnyWidget):
             if (isFullscreen) {
                 container.style.cssText = `
                     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-                    z-index: 9999; background: ${bgColor}; overflow: auto;
+                    z-index: 9999; background: ${bgColor}; overflow: hidden;
                 `;
                 fsBtn.innerHTML = "✕";
                 fsBtn.title = "Exit fullscreen";
@@ -75,9 +111,9 @@ class GraphvizGraph(anywidget.AnyWidget):
                 container.style.cssText = `
                     position: relative; display: block;
                     width: ${fitWidth ? '100%' : width + 'px'};
-                    min-height: ${height}px;
+                    height: ${height}px;
                     border: 1px solid ${borderColor};
-                    background: ${bgColor}; overflow: auto;
+                    background: ${bgColor}; overflow: hidden;
                 `;
                 fsBtn.innerHTML = "⛶";
                 fsBtn.title = "Toggle fullscreen";
@@ -91,51 +127,93 @@ class GraphvizGraph(anywidget.AnyWidget):
             }
         });
 
-        // SVG container
+        // SVG container for pan/zoom
         const svgContainer = document.createElement("div");
-        svgContainer.style.cssText = "padding: 10px;";
+        svgContainer.style.cssText = `
+            width: 100%; height: 100%;
+            cursor: grab;
+        `;
 
         // Loading indicator
         svgContainer.innerHTML = '<div style="color: ' + textColor + '; padding: 20px;">Loading Graphviz...</div>';
 
         container.appendChild(svgContainer);
-        container.appendChild(fsBtn);
+        container.appendChild(toolbar);
         el.appendChild(container);
 
         // Load Graphviz WASM and render
         try {
             const graphviz = await Graphviz.load();
-            const svg = graphviz.layout(dotSource, "svg", engine);
-            svgContainer.innerHTML = svg;
+            const svgString = graphviz.layout(dotSource, "svg", engine);
+            svgContainer.innerHTML = svgString;
 
             const svgEl = svgContainer.querySelector("svg");
             if (svgEl) {
-                // Apply scale transform
-                if (scale !== 1.0) {
-                    svgEl.style.transform = `scale(${scale})`;
-                    svgEl.style.transformOrigin = "top left";
-                }
-
-                // Make SVG responsive if fitWidth
-                if (fitWidth) {
-                    svgEl.style.maxWidth = "100%";
-                    svgEl.style.height = "auto";
-                }
+                // Make SVG fill container
+                svgEl.style.width = "100%";
+                svgEl.style.height = "100%";
+                svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
                 // Apply dark mode styles to SVG if needed
                 if (isDark) {
+                    // Fix text colors
                     svgEl.querySelectorAll("text").forEach(t => {
                         if (t.getAttribute("fill") === "black" || !t.getAttribute("fill")) {
                             t.setAttribute("fill", textColor);
                         }
                     });
+                    // Fix polygon fills (background)
                     svgEl.querySelectorAll("polygon").forEach(p => {
                         const fill = p.getAttribute("fill");
                         if (fill === "white" || fill === "#ffffff") {
                             p.setAttribute("fill", bgColor);
                         }
+                        // Fix polygon strokes (arrows, etc)
+                        const stroke = p.getAttribute("stroke");
+                        if (stroke === "black" || stroke === "#000000") {
+                            p.setAttribute("stroke", textColor);
+                        }
+                    });
+                    // Fix path strokes (edges/lines)
+                    svgEl.querySelectorAll("path").forEach(p => {
+                        const stroke = p.getAttribute("stroke");
+                        if (stroke === "black" || stroke === "#000000") {
+                            p.setAttribute("stroke", "#888888");
+                        }
+                    });
+                    // Fix ellipse strokes (nodes)
+                    svgEl.querySelectorAll("ellipse").forEach(e => {
+                        const stroke = e.getAttribute("stroke");
+                        if (stroke === "black" || stroke === "#000000") {
+                            e.setAttribute("stroke", textColor);
+                        }
                     });
                 }
+
+                // Setup D3 zoom/pan
+                const svg = d3.select(svgEl);
+                const g = svg.select("g");
+
+                // Initial transform with scale
+                const initialTransform = d3.zoomIdentity.scale(scale);
+
+                const zoom = d3.zoom()
+                    .scaleExtent([0.1, 4])
+                    .on("zoom", (event) => {
+                        g.attr("transform", event.transform);
+                    });
+
+                svg.call(zoom);
+                svg.call(zoom.transform, initialTransform);
+
+                // Button handlers
+                resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, initialTransform);
+                zoomInBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 1.3);
+                zoomOutBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 0.7);
+
+                // Change cursor on drag
+                svg.on("mousedown", () => svgContainer.style.cursor = "grabbing");
+                svg.on("mouseup", () => svgContainer.style.cursor = "grab");
             }
         } catch (error) {
             svgContainer.innerHTML = '<div style="color: red; padding: 20px;">Error: ' + error.message + '</div>';
