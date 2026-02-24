@@ -14,8 +14,8 @@ class NetworkGraph(anywidget.AnyWidget):
     width = traitlets.Int(800).tag(sync=True)
     height = traitlets.Int(600).tag(sync=True)
     layout = traitlets.Unicode("force").tag(sync=True)
-    charge_strength = traitlets.Int(-200).tag(sync=True)
-    link_distance = traitlets.Int(80).tag(sync=True)
+    charge_strength = traitlets.Int(-70).tag(sync=True)
+    link_distance = traitlets.Int(50).tag(sync=True)
     show_labels = traitlets.Bool(True).tag(sync=True)
     node_color = traitlets.Unicode("#69b3a2").tag(sync=True)
     directed = traitlets.Bool(False).tag(sync=True)
@@ -139,7 +139,7 @@ class NetworkGraph(anywidget.AnyWidget):
                         const rank = 1 - (d.degree / maxDegree);
                         return 50 + rank * (height - 100);
                     }).strength(0.8))
-                    .force("collision", d3.forceCollide().radius(20));
+                    .force("collision", d3.forceCollide().radius(25));
             } else if (layout === "clustered") {
                 // Clustered layout: tighter groups with stronger link forces
                 simulation
@@ -153,7 +153,7 @@ class NetworkGraph(anywidget.AnyWidget):
                     .force("link", d3.forceLink(links).id(d => d.id).distance(linkDistance))
                     .force("charge", d3.forceManyBody().strength(chargeStrength))
                     .force("center", d3.forceCenter(width / 2, height / 2))
-                    .force("collision", d3.forceCollide().radius(20));
+                    .force("collision", d3.forceCollide().radius(25));
             }
         }
 
@@ -182,6 +182,15 @@ class NetworkGraph(anywidget.AnyWidget):
             .attr("stroke-opacity", 0.6)
             .attr("stroke-width", 2)
             .attr("marker-end", directed ? "url(#arrowhead)" : null);
+
+        // Add hover tooltip for edges
+        link.append("title")
+            .text(d => {
+                let text = (d.source.id || d.source) + " → " + (d.target.id || d.target);
+                if (d.weight !== undefined && d.weight !== null) text += "\nWeight: " + d.weight;
+                if (d.type) text += "\nType: " + d.type;
+                return text;
+            });
 
         const node = svg.append("g")
             .selectAll("circle")
@@ -255,8 +264,8 @@ def create_networkx_widget(
     width: int = 800,
     height: int = 600,
     layout: LayoutType = "force",
-    charge_strength: int = -200,
-    link_distance: int = 80,
+    charge_strength: int = -70,
+    link_distance: int = 50,
     show_labels: bool = True,
     node_color: str = "#69b3a2",
     directed: bool = False,
@@ -275,8 +284,8 @@ def create_networkx_widget(
             - radial: Nodes arranged in concentric circles by degree (high degree at center)
             - hierarchical: High-degree nodes at top, lower degree flows down
             - clustered: Tighter grouping with stronger link attraction
-        charge_strength: Node repulsion force (negative). Default -200. More negative = more spread.
-        link_distance: Target distance between connected nodes. Default 80.
+        charge_strength: Node repulsion force (negative). Default -70. More negative = more spread.
+        link_distance: Target distance between connected nodes. Default 50.
         show_labels: Whether to show node labels. Default True.
         node_color: Node fill color (CSS color string). Default "#69b3a2".
         directed: Whether to show directional arrows on edges. Default False.
@@ -299,8 +308,9 @@ def create_networkx_widget(
         {
             "source": str(u),
             "target": str(v),
+            **{k: val for k, val in data.items()},
         }
-        for u, v in nx_graph.edges()
+        for u, v, data in nx_graph.edges(data=True)
     ]
 
     return NetworkGraph(
