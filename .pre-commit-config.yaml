@@ -41,9 +41,8 @@ repos:
         id: "pyright"
         name: "pyright"
         types_or: [python]
-        language: node
+        language: system
         pass_filenames: true
-        additional_dependencies: ["pyright"]
   - repo: local
     hooks:
       - id: pytest

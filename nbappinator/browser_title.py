@@ -1,10 +1,10 @@
 class BrowserTitle:
     title: str
-    iconHref: str
+    icon_href: str
 
-    def __init__(self, title: str, iconHref: str = "https://iqmo.com/iqmo-dk.svg"):
+    def __init__(self, title: str, icon_href: str = "https://iqmo.com/iqmo-dk.svg"):
         self.title = title
-        self.iconHref = iconHref
+        self.icon_href = icon_href
 
     def _repr_html_(self):
         return f"""
@@ -17,7 +17,7 @@ class BrowserTitle:
                         link.rel = 'icon';
                         document.head.appendChild(link);
                     }}
-                    link.href = '{self.iconHref}'
+                    link.href = '{self.icon_href}'
                 }})()
             </script>
         """

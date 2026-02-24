@@ -1,40 +1,22 @@
-import pytest
 import pandas as pd
+import plotly.express as px
+import pytest
+
 import nbappinator
 import nbappinator.plotly_charts
-import plotly.express as px
-
-
-def test_fail_invalidselectoption():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["Page 1"],
-        title="Some Title That'll Only Show Up in Voila",
-        log_footer="Messages",
-        headers=["Config"],
-    )
-
-    with pytest.raises(ValueError):
-        myapp.get_page(0).add_select(label="Foo", type=9)  # type: ignore
 
 
 def test_fail_invalidpathcol():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["First Tab"], log_footer="Messages", headers=["Config"]
-    )
+    myapp = nbappinator.App(tabs=["First Tab"], footer="Messages", header="Config")
     df = pd.DataFrame({"col1": [1, 2, 3]})
     with pytest.raises(ValueError):
-
-        myapp.get_page(0).add_df(
-            df=df, tree=True, pathcol="Doesn't Exist", pathdelim="/"
-        )
+        myapp.tab(0).dataframe("df1", df, tree=True, tree_column="Doesn't Exist", tree_delimiter="/")
 
 
 def test_fail_notapage():
-    myapp = nbappinator.TabbedUiModel(
-        pages=["First Tab"], log_footer="Messages", headers=["Config"]
-    )
-    with pytest.raises(ValueError):
-        myapp.get_page("asdasdTable")
+    myapp = nbappinator.App(tabs=["First Tab"], footer="Messages", header="Config")
+    with pytest.raises(KeyError):
+        myapp.tab("asdasdTable")
 
 
 def test_fail_plotlypng():

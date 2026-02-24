@@ -1,16 +1,15 @@
-from .browser_title import BrowserTitle  # noqa: I001
-
-from .appinator import SelectTypes, TabbedUiModel, UiModel, UiPage, UiWidget
-from .datagrid import ColMd
 from ._version import __version__
+from .app import App, Page
+from .browser_title import BrowserTitle
+from .datagrid import ColMd
+from .networkgraph import NetworkGraph, create_networkx_widget
 
 __all__ = [
     "__version__",
-    "TabbedUiModel",
-    "UiModel",
-    "UiPage",
+    "App",
+    "Page",
     "BrowserTitle",
-    "SelectTypes",
-    "UiWidget",
     "ColMd",
+    "NetworkGraph",
+    "create_networkx_widget",
 ]

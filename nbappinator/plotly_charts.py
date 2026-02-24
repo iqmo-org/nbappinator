@@ -1,12 +1,13 @@
+import base64
 import logging
+from typing import Optional
+
 import ipyvuetify as v
 import ipywidgets as w
 import plotly.colors as pc
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
-import base64
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,8 @@ def set_default_template():
 
 def create_widget(
     fig: go.Figure,
-    setcolors: bool,
-    png: bool,
+    setcolors: bool = False,
+    png: bool = False,
     height: Optional[int] = None,
     width: Optional[int] = None,
 ) -> w.Widget:
@@ -39,9 +40,7 @@ def create_widget(
         fig.layout.width = width
 
     if png:
-        raise ValueError(
-            "Not supported at this time due to kaleido hanging on some environments."
-        )
+        raise ValueError("Not supported at this time due to kaleido hanging on some environments.")
         import kaleido  # type: ignore  # noqa
 
         # Kaleido is only required if png generation is needed. This ensures it is installed.

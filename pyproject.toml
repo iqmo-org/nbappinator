@@ -15,6 +15,8 @@ dev = [
   "pre-commit-uv>=4.1.4",
   "python-dotenv>=1.2.1,<2",
   "matplotlib>=3.10.8",
+  "networkx>=3.0",
+  "pyright>=1.1.408",
 ]
 
 [project]
@@ -24,6 +26,12 @@ authors = [{name = "Paul T", email = "paul@iqmo.com"}]
 requires-python = ">=3.11"
 readme = "README.md"
 license = "BSD-3-Clause"
+classifiers = [
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
 dynamic = ["version"]
 maintainers = [{name = "Paul T", email = "paul@iqmo.com"}]
 keywords = ["nbappinator", "Jupyter", "Bquant"]
@@ -34,6 +42,7 @@ dependencies = [
   "ipyaggrid>=0.5.4",
   "ipytree>=0.2.2",
   "pandas>=2.2.2",
+  "anywidget>=0.9.0",
 ]
 
 [project.urls]
@@ -81,4 +90,7 @@ ignore = [
     "W291",
     "E501",
     "S608",
-    "PD901"]
+    "G004",
+    "C901",
+    "T201",
+    "S101"]
