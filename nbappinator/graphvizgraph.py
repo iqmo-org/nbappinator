@@ -13,6 +13,8 @@ class GraphvizGraph(anywidget.AnyWidget):
     width = traitlets.Int(800).tag(sync=True)
     height = traitlets.Int(600).tag(sync=True)
     engine = traitlets.Unicode("dot").tag(sync=True)
+    scale = traitlets.Float(0.75).tag(sync=True)
+    fit_width = traitlets.Bool(True).tag(sync=True)
 
     _esm = r"""
     import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.js";
@@ -22,6 +24,8 @@ class GraphvizGraph(anywidget.AnyWidget):
         const width = model.get("width");
         const height = model.get("height");
         const engine = model.get("engine");
+        const scale = model.get("scale");
+        const fitWidth = model.get("fit_width");
 
         // Detect dark mode
         const isDark = window.getComputedStyle(document.body).backgroundColor
@@ -31,13 +35,13 @@ class GraphvizGraph(anywidget.AnyWidget):
         const bgColor = isDark ? "#1e1e1e" : "#ffffff";
         const textColor = isDark ? "#e0e0e0" : "#333";
 
-        // Create container
+        // Create container - full width if fitWidth is true
         const container = document.createElement("div");
         container.style.cssText = `
             position: relative;
-            display: inline-block;
-            width: ${width}px;
-            height: ${height}px;
+            display: block;
+            width: ${fitWidth ? '100%' : width + 'px'};
+            min-height: ${height}px;
             border: 1px solid ${borderColor};
             background: ${bgColor};
             overflow: auto;
@@ -69,8 +73,9 @@ class GraphvizGraph(anywidget.AnyWidget):
                 fsBtn.title = "Exit fullscreen";
             } else {
                 container.style.cssText = `
-                    position: relative; display: inline-block;
-                    width: ${width}px; height: ${height}px;
+                    position: relative; display: block;
+                    width: ${fitWidth ? '100%' : width + 'px'};
+                    min-height: ${height}px;
                     border: 1px solid ${borderColor};
                     background: ${bgColor}; overflow: auto;
                 `;
@@ -103,11 +108,22 @@ class GraphvizGraph(anywidget.AnyWidget):
             const svg = graphviz.layout(dotSource, "svg", engine);
             svgContainer.innerHTML = svg;
 
-            // Apply dark mode styles to SVG if needed
-            if (isDark) {
-                const svgEl = svgContainer.querySelector("svg");
-                if (svgEl) {
-                    // Invert colors for dark mode
+            const svgEl = svgContainer.querySelector("svg");
+            if (svgEl) {
+                // Apply scale transform
+                if (scale !== 1.0) {
+                    svgEl.style.transform = `scale(${scale})`;
+                    svgEl.style.transformOrigin = "top left";
+                }
+
+                // Make SVG responsive if fitWidth
+                if (fitWidth) {
+                    svgEl.style.maxWidth = "100%";
+                    svgEl.style.height = "auto";
+                }
+
+                // Apply dark mode styles to SVG if needed
+                if (isDark) {
                     svgEl.querySelectorAll("text").forEach(t => {
                         if (t.getAttribute("fill") === "black" || !t.getAttribute("fill")) {
                             t.setAttribute("fill", textColor);
@@ -217,14 +233,16 @@ def create_graphviz_widget(
     node_attr: Optional[dict] = None,
     edge_attr: Optional[dict] = None,
     graph_attr: Optional[dict] = None,
+    scale: float = 0.75,
+    fit_width: bool = True,
 ) -> GraphvizGraph:
     """
     Create a Graphviz widget from a NetworkX graph.
 
     Args:
         nx_graph: NetworkX graph object
-        width: Canvas width in pixels
-        height: Canvas height in pixels
+        width: Canvas width in pixels (used when fit_width=False)
+        height: Minimum canvas height in pixels
         engine: Graphviz layout engine:
             - dot: Hierarchical layout (default, best for DAGs)
             - neato: Spring model layout (similar to force-directed)
@@ -237,6 +255,8 @@ def create_graphviz_widget(
         node_attr: Default attributes for all nodes
         edge_attr: Default attributes for all edges
         graph_attr: Graph-level attributes
+        scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
+        fit_width: If True, graph fills container width (default True)
 
     Returns:
         GraphvizGraph widget
@@ -248,4 +268,6 @@ def create_graphviz_widget(
         width=width,
         height=height,
         engine=engine,
+        scale=scale,
+        fit_width=fit_width,
     )

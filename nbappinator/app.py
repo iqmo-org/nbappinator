@@ -378,14 +378,16 @@ class Page:
         node_attr: Optional[dict] = None,
         edge_attr: Optional[dict] = None,
         graph_attr: Optional[dict] = None,
+        scale: float = 0.75,
+        fit_width: bool = True,
     ) -> "Page":
         """Add a Graphviz graph visualization.
 
         Args:
             graph: NetworkX graph object
             name: Optional widget name for reference
-            width: Canvas width in pixels
-            height: Canvas height in pixels
+            width: Canvas width in pixels (used when fit_width=False)
+            height: Minimum canvas height in pixels
             engine: Graphviz layout engine:
                 - dot: Hierarchical layout (default, best for DAGs)
                 - neato: Spring model layout (similar to force-directed)
@@ -398,6 +400,8 @@ class Page:
             node_attr: Default attributes for all nodes (e.g., {"shape": "box"})
             edge_attr: Default attributes for all edges (e.g., {"color": "blue"})
             graph_attr: Graph-level attributes (e.g., {"rankdir": "LR"})
+            scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
+            fit_width: If True, graph fills container width (default True)
         """
         w = graphvizgraph.create_graphviz_widget(
             nx_graph=graph,
@@ -407,6 +411,8 @@ class Page:
             node_attr=node_attr,
             edge_attr=edge_attr,
             graph_attr=graph_attr,
+            scale=scale,
+            fit_width=fit_width,
         )
         return self._add_widget(w, name)
 
