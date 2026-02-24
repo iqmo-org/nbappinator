@@ -7,13 +7,13 @@
 | nbappinator/\_\_init\_\_.py   |        5 |        0 |    100% |           |
 | nbappinator/\_version.py      |        1 |        0 |    100% |           |
 | nbappinator/aggridhelper.py   |       10 |        0 |    100% |           |
-| nbappinator/appinator.py      |      307 |       13 |     96% |230, 244-256 |
+| nbappinator/appinator.py      |      307 |       16 |     95% |200-202, 217, 230, 244-256 |
 | nbappinator/browser\_title.py |        8 |        0 |    100% |           |
 | nbappinator/datagrid.py       |      107 |        0 |    100% |           |
 | nbappinator/jinjamagic.py     |        0 |        0 |    100% |           |
-| nbappinator/plotly\_charts.py |       30 |        0 |    100% |           |
+| nbappinator/plotly\_charts.py |       30 |        3 |     90% |37, 39, 64 |
 | nbappinator/treew.py          |       39 |        0 |    100% |           |
-|                     **TOTAL** |  **507** |   **13** | **97%** |           |
+|                     **TOTAL** |  **507** |   **19** | **96%** |           |
 
 
 ## Setup coverage badge
