@@ -21,7 +21,7 @@ class GraphvizGraph(anywidget.AnyWidget):
     import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.js";
     import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-    export async function render({ model, el }) {
+    async function render({ model, el }) {
         const dotSource = model.get("dot_source");
         const width = model.get("width");
         const height = model.get("height");
@@ -203,15 +203,17 @@ class GraphvizGraph(anywidget.AnyWidget):
                 const svg = d3.select(svgEl);
                 const g = svg.select("g");
 
-                // Calculate centering transform
-                const bbox = g.node().getBBox();
-                const containerWidth = svgContainer.clientWidth;
-                const containerHeight = svgContainer.clientHeight;
-                const scaledWidth = bbox.width * scale;
-                const scaledHeight = bbox.height * scale;
-                const tx = (containerWidth - scaledWidth) / 2 - bbox.x * scale;
-                const ty = (containerHeight - scaledHeight) / 2 - bbox.y * scale;
-                const initialTransform = d3.zoomIdentity.translate(tx, ty).scale(scale);
+                // Function to calculate centered transform
+                const getCenteredTransform = () => {
+                    const bbox = g.node().getBBox();
+                    const containerWidth = svgContainer.clientWidth || width;
+                    const containerHeight = svgContainer.clientHeight || height;
+                    const scaledWidth = bbox.width * scale;
+                    const scaledHeight = bbox.height * scale;
+                    const tx = (containerWidth - scaledWidth) / 2 - bbox.x * scale;
+                    const ty = (containerHeight - scaledHeight) / 2 - bbox.y * scale;
+                    return d3.zoomIdentity.translate(tx, ty).scale(scale);
+                };
 
                 const zoom = d3.zoom()
                     .scaleExtent([0.1, 4])
@@ -220,10 +222,15 @@ class GraphvizGraph(anywidget.AnyWidget):
                     });
 
                 svg.call(zoom);
-                svg.call(zoom.transform, initialTransform);
+
+                // Defer centering until after layout is complete
+                requestAnimationFrame(() => {
+                    const initialTransform = getCenteredTransform();
+                    svg.call(zoom.transform, initialTransform);
+                });
 
                 // Button handlers
-                resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, initialTransform);
+                resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, getCenteredTransform());
                 zoomInBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 1.3);
                 zoomOutBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 0.7);
 
@@ -235,6 +242,8 @@ class GraphvizGraph(anywidget.AnyWidget):
             svgContainer.innerHTML = '<div style="color: red; padding: 20px;">Error: ' + error.message + '</div>';
         }
     }
+
+    export default { render }
     """
 
 
