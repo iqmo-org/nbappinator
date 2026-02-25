@@ -4,17 +4,18 @@
 
 | Name                          |    Stmts |     Miss |   Cover |   Missing |
 |------------------------------ | -------: | -------: | ------: | --------: |
-| nbappinator/\_\_init\_\_.py   |        6 |        0 |    100% |           |
+| nbappinator/\_\_init\_\_.py   |        7 |        0 |    100% |           |
 | nbappinator/\_version.py      |        1 |        0 |    100% |           |
 | nbappinator/aggridhelper.py   |       14 |        2 |     86% |    24, 26 |
-| nbappinator/app.py            |      237 |       29 |     88% |165, 179, 261-264, 506-510, 522, 528, 537, 541-545, 554, 567-569, 587-589, 600-602, 608 |
+| nbappinator/app.py            |      240 |       29 |     88% |165, 179, 261-264, 557-561, 573, 579, 588, 592-596, 605, 618-620, 638-640, 651-653, 659 |
 | nbappinator/browser\_title.py |        8 |        0 |    100% |           |
 | nbappinator/datagrid.py       |      114 |        0 |    100% |           |
+| nbappinator/graphvizgraph.py  |       59 |       10 |     83% |272-273, 282-283, 294-296, 309, 313, 319-321 |
 | nbappinator/jinjamagic.py     |        0 |        0 |    100% |           |
 | nbappinator/networkgraph.py   |       22 |        0 |    100% |           |
 | nbappinator/plotly\_charts.py |       30 |        2 |     93% |     16-17 |
-| nbappinator/treew.py          |       39 |        0 |    100% |           |
-|                     **TOTAL** |  **471** |   **33** | **93%** |           |
+| nbappinator/treew.py          |       46 |        2 |     96% |  266, 282 |
+|                     **TOTAL** |  **541** |   **45** | **92%** |           |
 
 
 ## Setup coverage badge
