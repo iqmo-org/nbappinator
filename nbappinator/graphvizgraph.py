@@ -151,7 +151,9 @@ class GraphvizGraph(anywidget.AnyWidget):
 
             const svgEl = svgContainer.querySelector("svg");
             if (svgEl) {
-                // Make SVG fill container
+                // Remove explicit dimensions so preserveAspectRatio works properly
+                svgEl.removeAttribute("width");
+                svgEl.removeAttribute("height");
                 svgEl.style.width = "100%";
                 svgEl.style.height = "100%";
                 svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
@@ -199,38 +201,32 @@ class GraphvizGraph(anywidget.AnyWidget):
                     });
                 }
 
-                // Setup D3 zoom/pan
+                // Setup D3 zoom/pan with wrapper group to avoid transform conflicts
                 const svg = d3.select(svgEl);
-                const g = svg.select("g");
+                const originalG = svg.select("g");
 
-                // Function to calculate centered transform
-                const getCenteredTransform = () => {
-                    const bbox = g.node().getBBox();
-                    const containerWidth = svgContainer.clientWidth || width;
-                    const containerHeight = svgContainer.clientHeight || height;
-                    const scaledWidth = bbox.width * scale;
-                    const scaledHeight = bbox.height * scale;
-                    const tx = (containerWidth - scaledWidth) / 2 - bbox.x * scale;
-                    const ty = (containerHeight - scaledHeight) / 2 - bbox.y * scale;
-                    return d3.zoomIdentity.translate(tx, ty).scale(scale);
-                };
+                // Create wrapper group for zoom transforms
+                const zoomG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                zoomG.setAttribute("class", "zoom-layer");
+                originalG.node().parentNode.insertBefore(zoomG, originalG.node());
+                zoomG.appendChild(originalG.node());
+
+                const zoomLayer = d3.select(zoomG);
 
                 const zoom = d3.zoom()
                     .scaleExtent([0.1, 4])
                     .on("zoom", (event) => {
-                        g.attr("transform", event.transform);
+                        zoomLayer.attr("transform", event.transform);
                     });
 
                 svg.call(zoom);
 
-                // Defer centering until after layout is complete
-                requestAnimationFrame(() => {
-                    const initialTransform = getCenteredTransform();
-                    svg.call(zoom.transform, initialTransform);
-                });
+                // Use identity transform - preserveAspectRatio handles centering
+                const initialTransform = d3.zoomIdentity;
+                svg.call(zoom.transform, initialTransform);
 
                 // Button handlers
-                resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, getCenteredTransform());
+                resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, initialTransform);
                 zoomInBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 1.3);
                 zoomOutBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 0.7);
 
