@@ -29,7 +29,7 @@ import ipywidgets
 from IPython.display import display
 
 from . import aggridhelper as g
-from . import networkgraph, plotly_charts, treew
+from . import graphvizgraph, networkgraph, plotly_charts, treew
 from .browser_title import BrowserTitle
 
 logger = logging.getLogger(__name__)
@@ -365,6 +365,57 @@ class Page:
             directed=directed,
             node_size=node_size,
             size_by_degree=size_by_degree,
+        )
+        return self._add_widget(w, name)
+
+    def graphviz(
+        self,
+        graph,
+        name: Optional[str] = None,
+        width: int = 800,
+        height: int = 600,
+        engine: graphvizgraph.LayoutEngine = "dot",
+        node_attr: Optional[dict] = None,
+        edge_attr: Optional[dict] = None,
+        graph_attr: Optional[dict] = None,
+        scale: float = 0.75,
+        fit_width: bool = True,
+        show_labels: bool = True,
+    ) -> "Page":
+        """Add a Graphviz graph visualization.
+
+        Args:
+            graph: NetworkX graph object
+            name: Optional widget name for reference
+            width: Canvas width in pixels (used when fit_width=False)
+            height: Minimum canvas height in pixels
+            engine: Graphviz layout engine:
+                - dot: Hierarchical layout (default, best for DAGs)
+                - neato: Spring model layout (similar to force-directed)
+                - fdp: Force-directed placement
+                - sfdp: Scalable force-directed (for large graphs)
+                - circo: Circular layout
+                - twopi: Radial layout
+                - osage: Clustered layout
+                - patchwork: Squarified treemap
+            node_attr: Default attributes for all nodes (e.g., {"shape": "box"})
+            edge_attr: Default attributes for all edges (e.g., {"color": "blue"})
+            graph_attr: Graph-level attributes (e.g., {"rankdir": "LR"})
+            scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
+            fit_width: If True, graph fills container width (default True)
+            show_labels: If True, show node/edge labels (default True)
+        """
+        w = graphvizgraph.create_graphviz_widget(
+            nx_graph=graph,
+            width=width,
+            height=height,
+            engine=engine,
+            node_attr=node_attr,
+            edge_attr=edge_attr,
+            graph_attr=graph_attr,
+            scale=scale,
+            fit_width=fit_width,
+            show_labels=show_labels,
         )
         return self._add_widget(w, name)
 

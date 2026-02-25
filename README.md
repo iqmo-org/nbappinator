@@ -108,7 +108,7 @@ page.dataframe("name", df, on_click=callback, tree=True, tree_column="path")
 page.plotly(fig)
 page.matplotlib(fig)
 page.networkx(graph, layout="force")   # D3 force-directed graph
-page.tree("name", paths=["a~b~c"], delimiter="~")
+page.tree("name", paths=["a~b~c"], delimiter="~")  # D3 collapsible tree
 ```
 
 ### Layout
@@ -158,7 +158,7 @@ nbappinator builds on some great projects that provide useful building blocks in
 
 [Plotly](https://plotly.com/) is given first class support, although any matplotlib charting library works, such as Seaborn.
 
-[D3.js](https://d3js.org/) powers the interactive NetworkX graph visualizations with force-directed layouts.
+[D3.js](https://d3js.org/) powers the interactive NetworkX graph visualizations and collapsible tree widgets.
 
 This all builds on [Jupyter](https://jupyter.org/) and [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/).
 
