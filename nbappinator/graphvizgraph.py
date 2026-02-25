@@ -203,8 +203,15 @@ class GraphvizGraph(anywidget.AnyWidget):
                 const svg = d3.select(svgEl);
                 const g = svg.select("g");
 
-                // Initial transform with scale
-                const initialTransform = d3.zoomIdentity.scale(scale);
+                // Calculate centering transform
+                const bbox = g.node().getBBox();
+                const containerWidth = svgContainer.clientWidth;
+                const containerHeight = svgContainer.clientHeight;
+                const scaledWidth = bbox.width * scale;
+                const scaledHeight = bbox.height * scale;
+                const tx = (containerWidth - scaledWidth) / 2 - bbox.x * scale;
+                const ty = (containerHeight - scaledHeight) / 2 - bbox.y * scale;
+                const initialTransform = d3.zoomIdentity.translate(tx, ty).scale(scale);
 
                 const zoom = d3.zoom()
                     .scaleExtent([0.1, 4])
