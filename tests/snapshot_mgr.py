@@ -32,7 +32,7 @@ ignore_lines_patterns = [
     '(.*"_id": [0-9]+,.*)',
     "(.*js_helpers_custom.*)",
     "(.*js_helpers_builtin.*)",
-    # for ipytree
+    # for D3 tree widget
     r"(.*\.flex[a-z\-]+\-[0-9]+\s)",
 ]
 

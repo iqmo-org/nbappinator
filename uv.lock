@@ -610,18 +610,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ipytree"
-version = "0.2.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ipywidgets" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/52/e9/74ab8e327bb884b415124fc5ac2416916499278fef7a628620715ec326ce/ipytree-0.2.2.tar.gz", hash = "sha256:d53d739bbaaa45415733cd06e0dc420a2af3d173438617db472a517bc7a61e56", size = 636289, upload-time = "2022-08-23T15:11:48.429Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/03/35cf1742598d784e96153175233318a2332f71863e55ad1007c9264c1a7a/ipytree-0.2.2-py2.py3-none-any.whl", hash = "sha256:744dc1a02c3ec26df8a5ecd87d085a67dc8232a1def6048834403ddcf3b64143", size = 1285067, upload-time = "2022-08-23T15:11:44.214Z" },
-]
-
-[[package]]
 name = "ipyvue"
 version = "1.12.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1023,7 +1011,6 @@ source = { editable = "." }
 dependencies = [
     { name = "anywidget" },
     { name = "ipyaggrid" },
-    { name = "ipytree" },
     { name = "ipyvuetify" },
     { name = "ipywidgets" },
     { name = "pandas" },
@@ -1049,13 +1036,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anywidget", specifier = ">=0.9.0" },
+    { name = "anywidget", specifier = ">=0.9.21" },
     { name = "ipyaggrid", specifier = ">=0.5.4" },
-    { name = "ipytree", specifier = ">=0.2.2" },
-    { name = "ipyvuetify", specifier = ">=1.9.4" },
-    { name = "ipywidgets", specifier = ">=8.1.3" },
+    { name = "ipyvuetify", specifier = ">=1.11.3" },
+    { name = "ipywidgets", specifier = ">=8.1.8" },
     { name = "pandas", specifier = ">=2.2.2" },
-    { name = "plotly", specifier = ">=5.22.0" },
+    { name = "plotly", specifier = ">=6.5.0" },
 ]
 
 [package.metadata.requires-dev]
