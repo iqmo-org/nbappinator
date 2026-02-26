@@ -48,32 +48,14 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Load AG Grid CSS from CDN
-    async function loadAgGridStyles(version) {
-        const linkId = "ag-grid-styles-css";
-        if (document.getElementById(linkId)) return;
-
-        const link = document.createElement("link");
-        link.id = linkId;
-        link.rel = "stylesheet";
-        link.href = `https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/styles/ag-grid.css`;
-        document.head.appendChild(link);
-
-        // Wait for CSS to load
-        await new Promise((resolve) => {
-            link.onload = resolve;
-            link.onerror = resolve; // Continue even if CSS fails to load
-        });
-    }
-
-    // Inject additional styles for dark mode
+    // Inject styles for dark mode fixes
     function injectGridStyles() {
         const styleId = "ag-grid-custom-styles";
         if (document.getElementById(styleId)) return;
         const style = document.createElement("style");
         style.id = styleId;
         style.textContent = `
-            /* Dark mode */
+            /* Dark mode fixes */
             .theme-dark .ag-root-wrapper,
             .theme-dark .ag-root-wrapper-body {
                 background-color: transparent !important;
@@ -160,10 +142,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 ? rgbMatch.slice(0, 3).reduce((sum, v) => sum + parseInt(v), 0) < 384
                 : false;
 
-            // Load AG Grid CSS from CDN (required for proper layout)
-            await loadAgGridStyles(version);
-
-            // Inject additional custom styles
+            // Inject custom styles for dark mode
             injectGridStyles();
 
             // Style container for dark/light mode
@@ -246,10 +225,17 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 // Clear loading message and create container
                 el.innerHTML = "";
-                el.style.width = width;  // Match container width to avoid white gaps
+                el.style.width = width;
+                el.style.display = "block";
+
                 const container = document.createElement("div");
-                container.style.height = `${height}px`;
-                container.style.width = "100%";
+                container.style.cssText = `
+                    height: ${height}px;
+                    width: 100%;
+                    display: block;
+                    position: relative;
+                    overflow: hidden;
+                `;
                 el.appendChild(container);
 
                 const gridOptions = {
