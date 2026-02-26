@@ -11,7 +11,7 @@ from .datagrid import ColMd
 
 # Default AG Grid version
 # v33.0.0 introduced the new Theming API
-DEFAULT_AGGRID_VERSION = "33.2.0"
+DEFAULT_AGGRID_VERSION = "latest"
 
 
 class AGGridWidget(anywidget.AnyWidget):
@@ -49,22 +49,6 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Load AG Grid core CSS (structural layout)
-    async function loadAgGridCSS(version) {
-        const linkId = "ag-grid-core-css";
-        if (document.getElementById(linkId)) return;
-
-        const link = document.createElement("link");
-        link.id = linkId;
-        link.rel = "stylesheet";
-        link.href = `https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/styles/ag-grid.css`;
-        document.head.appendChild(link);
-
-        await new Promise(resolve => {
-            link.onload = resolve;
-            link.onerror = resolve;
-        });
-    }
 
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
@@ -133,9 +117,6 @@ class AGGridWidget(anywidget.AnyWidget):
             const isEnterprise = model.get("enterprise") || false;
             const licenseKey = model.get("license_key") || "";
 
-            // Load core CSS first (structural layout)
-            await loadAgGridCSS(version);
-
             // Detect dark mode from body background color
             const bgColor = window.getComputedStyle(document.body).backgroundColor;
             const rgbMatch = bgColor.match(/\\d+/g);
@@ -189,6 +170,14 @@ class AGGridWidget(anywidget.AnyWidget):
                 // Build theme using new Theming API (v33+)
                 const gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
 
+                // Debug: check if theme has install/inject method
+                console.log("Theme object:", gridTheme);
+                console.log("Theme methods:", Object.keys(gridTheme));
+                if (gridTheme.install) {
+                    console.log("Installing theme CSS...");
+                    gridTheme.install();
+                }
+
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
                 const isTree = model.get("is_tree");
@@ -209,8 +198,6 @@ class AGGridWidget(anywidget.AnyWidget):
                 const container = document.createElement("div");
                 container.style.height = `${height}px`;
                 container.style.width = width;
-                // Add theme class as fallback for CSS injection
-                container.className = isDark ? "ag-theme-quartz-dark" : "ag-theme-quartz";
                 el.appendChild(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
