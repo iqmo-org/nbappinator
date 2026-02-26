@@ -9,8 +9,9 @@ import traitlets
 
 from .datagrid import ColMd
 
-# Default AG Grid version - use "latest" for newest, or pin to specific version like "35.1.0"
-DEFAULT_AGGRID_VERSION = "latest"
+# Default AG Grid version
+# v33.0.0 introduced the new Theming API
+DEFAULT_AGGRID_VERSION = "33.2.0"
 
 
 class AGGridWidget(anywidget.AnyWidget):
@@ -48,25 +49,6 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Inject styles for dark mode fixes
-    function injectGridStyles() {
-        const styleId = "ag-grid-custom-styles";
-        if (document.getElementById(styleId)) return;
-        const style = document.createElement("style");
-        style.id = styleId;
-        style.textContent = `
-            /* Dark mode fixes */
-            .theme-dark .ag-root-wrapper,
-            .theme-dark .ag-root-wrapper-body {
-                background-color: transparent !important;
-                border-color: #424242 !important;
-            }
-            .theme-dark .ag-root {
-                background-color: transparent !important;
-            }
-        `;
-        document.head.appendChild(style);
-    }
 
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
@@ -142,26 +124,6 @@ class AGGridWidget(anywidget.AnyWidget):
                 ? rgbMatch.slice(0, 3).reduce((sum, v) => sum + parseInt(v), 0) < 384
                 : false;
 
-            // Inject custom styles for dark mode
-            injectGridStyles();
-
-            // Style container for dark/light mode
-            el.style.backgroundColor = "transparent";
-
-            // Fix parent containers that may have white backgrounds in dark mode
-            if (isDark) {
-                let parent = el.parentElement;
-                while (parent && parent.tagName !== 'BODY') {
-                    const pBg = window.getComputedStyle(parent).backgroundColor;
-                    const pRgb = pBg.match(/\\d+/g);
-                    if (pRgb && pRgb.slice(0, 3).reduce((s, v) => s + parseInt(v), 0) > 600) {
-                        parent.style.backgroundColor = "transparent";
-                    }
-                    if (parent.classList.contains('jp-OutputArea') || parent.classList.contains('output')) break;
-                    parent = parent.parentElement;
-                }
-            }
-
             // Show loading state
             const modeLabel = isEnterprise ? "Enterprise" : "Community";
             el.innerHTML = `<div style="padding: 20px; color: ${isDark ? '#ccc' : '#666'};">Loading AG Grid ${modeLabel} (${version})...</div>`;
@@ -170,8 +132,8 @@ class AGGridWidget(anywidget.AnyWidget):
                 let createGrid, themeBalham, colorSchemeDark, colorSchemeLight;
 
                 if (isEnterprise) {
-                    // Use esm.sh for enterprise (bundles dependencies)
-                    const agGridModule = await import(`https://esm.sh/ag-grid-enterprise@${version}?bundle-deps`);
+                    // Use jsdelivr ESM for enterprise
+                    const agGridModule = await import(`https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${version}/+esm`);
                     createGrid = agGridModule.createGrid;
                     themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
                     colorSchemeDark = agGridModule.colorSchemeDark;
@@ -206,20 +168,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 }
 
                 // Build theme using new Theming API (v33+)
-                console.log("AG Grid theme exports:", {
-                    themeBalham: typeof themeBalham,
-                    colorSchemeDark: typeof colorSchemeDark,
-                    colorSchemeLight: typeof colorSchemeLight,
-                    isDark: isDark
-                });
-
-                let gridTheme;
-                if (themeBalham && colorSchemeDark && colorSchemeLight) {
-                    gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
-                } else {
-                    console.warn("AG Grid theme parts not available, using default");
-                    gridTheme = themeBalham || "ag-theme-balham";
-                }
+                const gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
@@ -238,17 +187,9 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 // Clear loading message and create container
                 el.innerHTML = "";
-                el.style.width = width;
-                el.style.display = "block";
-
                 const container = document.createElement("div");
-                container.style.cssText = `
-                    height: ${height}px;
-                    width: 100%;
-                    display: block;
-                    position: relative;
-                    overflow: hidden;
-                `;
+                container.style.height = `${height}px`;
+                container.style.width = width;
                 el.appendChild(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
