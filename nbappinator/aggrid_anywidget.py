@@ -48,6 +48,50 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
+    // Inject structural CSS into a specific container (not document.head)
+    // This fixes layout issues in Jupyter where head styles don't cascade properly
+    function injectStructuralCSS(container) {
+        const style = document.createElement("style");
+        style.textContent = `
+            .ag-root-wrapper {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root-wrapper-body {
+                display: flex;
+                flex: 1 1 auto;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
+                overflow: hidden;
+            }
+            .ag-header {
+                flex: none;
+                position: relative;
+                z-index: 1;
+            }
+            .ag-body {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-body-viewport {
+                flex: 1 1 auto;
+                overflow: auto;
+                position: relative;
+            }
+        `;
+        container.appendChild(style);
+    }
+
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
         if (!format || format === "default") {
@@ -178,6 +222,9 @@ class AGGridWidget(anywidget.AnyWidget):
                 container.style.height = `${height}px`;
                 container.style.width = width;
                 el.appendChild(container);
+
+                // Inject structural CSS into container (fixes Jupyter layout issues)
+                injectStructuralCSS(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
                 // checkboxes: false to avoid showing checkbox column
