@@ -48,13 +48,32 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Inject CSS to fix AG Grid wrapper backgrounds in dark mode
-    function injectDarkModeStyles() {
-        const styleId = "ag-grid-dark-container-fix";
+    // Load AG Grid CSS from CDN
+    async function loadAgGridStyles(version) {
+        const linkId = "ag-grid-styles-css";
+        if (document.getElementById(linkId)) return;
+
+        const link = document.createElement("link");
+        link.id = linkId;
+        link.rel = "stylesheet";
+        link.href = `https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/styles/ag-grid.css`;
+        document.head.appendChild(link);
+
+        // Wait for CSS to load
+        await new Promise((resolve) => {
+            link.onload = resolve;
+            link.onerror = resolve; // Continue even if CSS fails to load
+        });
+    }
+
+    // Inject additional styles for dark mode
+    function injectGridStyles() {
+        const styleId = "ag-grid-custom-styles";
         if (document.getElementById(styleId)) return;
         const style = document.createElement("style");
         style.id = styleId;
         style.textContent = `
+            /* Dark mode */
             .theme-dark .ag-root-wrapper,
             .theme-dark .ag-root-wrapper-body {
                 background-color: transparent !important;
@@ -141,11 +160,14 @@ class AGGridWidget(anywidget.AnyWidget):
                 ? rgbMatch.slice(0, 3).reduce((sum, v) => sum + parseInt(v), 0) < 384
                 : false;
 
+            // Load AG Grid CSS from CDN (required for proper layout)
+            await loadAgGridStyles(version);
+
+            // Inject additional custom styles
+            injectGridStyles();
+
             // Style container for dark/light mode
             el.style.backgroundColor = "transparent";
-            if (isDark) {
-                injectDarkModeStyles();
-            }
 
             // Fix parent containers that may have white backgrounds in dark mode
             if (isDark) {
