@@ -10,7 +10,6 @@ import traitlets
 from .datagrid import ColMd
 
 # Default AG Grid version
-# v33.0.0 introduced the new Theming API
 DEFAULT_AGGRID_VERSION = "latest"
 
 
@@ -129,64 +128,35 @@ class AGGridWidget(anywidget.AnyWidget):
             el.innerHTML = `<div style="padding: 20px; color: ${isDark ? '#ccc' : '#666'};">Loading AG Grid ${modeLabel} (${version})...</div>`;
 
             try {
-                let createGrid, themeBalham, colorSchemeDark, colorSchemeLight;
+                let createGrid, themeQuartz, colorSchemeDark, colorSchemeLight;
 
                 if (isEnterprise) {
-                    // Use jsdelivr ESM for enterprise
-                    const agGridModule = await import(`https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${version}/+esm`);
-                    createGrid = agGridModule.createGrid;
-                    themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
-                    colorSchemeDark = agGridModule.colorSchemeDark;
-                    colorSchemeLight = agGridModule.colorSchemeLight;
-                    const ModuleRegistry = agGridModule.ModuleRegistry;
-                    const AllEnterpriseModule = agGridModule.AllEnterpriseModule;
-                    const LicenseManager = agGridModule.LicenseManager;
+                    const ag = await import(`https://esm.sh/ag-grid-enterprise@${version}?bundle-deps`);
+                    createGrid = ag.createGrid;
+                    themeQuartz = ag.themeQuartz;
+                    colorSchemeDark = ag.colorSchemeDark;
+                    colorSchemeLight = ag.colorSchemeLight;
 
-                    // Register enterprise modules
-                    if (ModuleRegistry && AllEnterpriseModule) {
-                        ModuleRegistry.registerModules([AllEnterpriseModule]);
+                    if (ag.ModuleRegistry && ag.AllEnterpriseModule) {
+                        ag.ModuleRegistry.registerModules([ag.AllEnterpriseModule]);
                     }
-
-                    // Set license key
-                    if (LicenseManager && licenseKey) {
-                        LicenseManager.setLicenseKey(licenseKey);
+                    if (ag.LicenseManager && licenseKey) {
+                        ag.LicenseManager.setLicenseKey(licenseKey);
                     }
                 } else {
-                    // Use jsdelivr ESM for community
-                    const agGridModule = await import(`https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/+esm`);
+                    const ag = await import(`https://esm.sh/ag-grid-community@${version}`);
+                    createGrid = ag.createGrid;
+                    themeQuartz = ag.themeQuartz;
+                    colorSchemeDark = ag.colorSchemeDark;
+                    colorSchemeLight = ag.colorSchemeLight;
 
-                    // Debug: see all exports
-                    const exports = Object.keys(agGridModule).filter(k =>
-                        k.toLowerCase().includes('style') ||
-                        k.toLowerCase().includes('css') ||
-                        k.toLowerCase().includes('theme') ||
-                        k.toLowerCase().includes('inject')
-                    );
-                    console.log("AG Grid style-related exports:", exports);
-
-                    createGrid = agGridModule.createGrid;
-                    themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
-                    colorSchemeDark = agGridModule.colorSchemeDark;
-                    colorSchemeLight = agGridModule.colorSchemeLight;
-                    const ModuleRegistry = agGridModule.ModuleRegistry;
-                    const AllCommunityModule = agGridModule.AllCommunityModule;
-
-                    // Register community modules (required for v32+)
-                    if (ModuleRegistry && AllCommunityModule) {
-                        ModuleRegistry.registerModules([AllCommunityModule]);
+                    if (ag.ModuleRegistry && ag.AllCommunityModule) {
+                        ag.ModuleRegistry.registerModules([ag.AllCommunityModule]);
                     }
                 }
 
-                // Build theme using new Theming API (v33+)
-                const gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
-
-                // Debug: check if theme has install/inject method
-                console.log("Theme object:", gridTheme);
-                console.log("Theme methods:", Object.keys(gridTheme));
-                if (gridTheme.install) {
-                    console.log("Installing theme CSS...");
-                    gridTheme.install();
-                }
+                // Build theme using Theming API
+                const gridTheme = themeQuartz.withPart(isDark ? colorSchemeDark : colorSchemeLight);
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
@@ -216,7 +186,7 @@ class AGGridWidget(anywidget.AnyWidget):
                     : { mode: "singleRow" };
 
                 const gridOptions = {
-                    theme: gridTheme,  // New Theming API (v33+)
+                    theme: gridTheme,
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
