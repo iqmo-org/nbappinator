@@ -48,48 +48,6 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Inject minimal structural CSS for AG Grid layout (Theming API doesn't inject this in dynamic imports)
-    function injectStructuralCSS() {
-        const id = "ag-grid-structural-css";
-        if (document.getElementById(id)) return;
-
-        const style = document.createElement("style");
-        style.id = id;
-        style.textContent = `
-            .ag-root-wrapper {
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                position: relative;
-            }
-            .ag-root-wrapper-body {
-                display: flex;
-                flex: 1 1 auto;
-                overflow: hidden;
-            }
-            .ag-root {
-                display: flex;
-                flex-direction: column;
-                flex: 1 1 auto;
-                overflow: hidden;
-            }
-            .ag-header {
-                flex: none;
-            }
-            .ag-body {
-                display: flex;
-                flex: 1 1 auto;
-                flex-direction: column;
-                overflow: hidden;
-            }
-            .ag-body-viewport {
-                flex: 1 1 auto;
-                overflow: auto;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
         if (!format || format === "default") {
@@ -157,9 +115,6 @@ class AGGridWidget(anywidget.AnyWidget):
             const isEnterprise = model.get("enterprise") || false;
             const licenseKey = model.get("license_key") || "";
 
-            // Inject structural CSS (workaround for Theming API not injecting layout in dynamic imports)
-            injectStructuralCSS();
-
             // Detect dark mode from body background color
             const bgColor = window.getComputedStyle(document.body).backgroundColor;
             const rgbMatch = bgColor.match(/\\d+/g);
@@ -225,12 +180,14 @@ class AGGridWidget(anywidget.AnyWidget):
                 el.appendChild(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
+                // checkboxes: false to avoid showing checkbox column
                 const rowSelectionConfig = selectMode === "multiple"
-                    ? { mode: "multiRow" }
-                    : { mode: "singleRow" };
+                    ? { mode: "multiRow", checkboxes: false }
+                    : { mode: "singleRow", checkboxes: false };
 
                 const gridOptions = {
                     theme: gridTheme,
+                    themeStyleContainer: container,  // Inject CSS into container, not document.head (fixes Jupyter)
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
