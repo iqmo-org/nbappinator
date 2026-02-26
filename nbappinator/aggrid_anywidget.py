@@ -154,6 +154,16 @@ class AGGridWidget(anywidget.AnyWidget):
                 } else {
                     // Use jsdelivr ESM for community
                     const agGridModule = await import(`https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/+esm`);
+
+                    // Debug: see all exports
+                    const exports = Object.keys(agGridModule).filter(k =>
+                        k.toLowerCase().includes('style') ||
+                        k.toLowerCase().includes('css') ||
+                        k.toLowerCase().includes('theme') ||
+                        k.toLowerCase().includes('inject')
+                    );
+                    console.log("AG Grid style-related exports:", exports);
+
                     createGrid = agGridModule.createGrid;
                     themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
                     colorSchemeDark = agGridModule.colorSchemeDark;
