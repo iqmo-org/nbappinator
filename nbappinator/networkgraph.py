@@ -259,7 +259,7 @@ class NetworkGraph(anywidget.AnyWidget):
     """
 
 
-def create_networkx_widget(
+def create_graph_d3(
     nx_graph,
     width: int = 800,
     height: int = 600,

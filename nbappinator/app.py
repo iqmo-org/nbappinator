@@ -28,9 +28,9 @@ import ipyvuetify as v
 import ipywidgets
 from IPython.display import display
 
-from . import aggridhelper as g
-from . import graphvizgraph, networkgraph, plotly_charts, treew
+from . import aggrid_anywidget, graphvizgraph, networkgraph, plotly_charts, treew
 from .browser_title import BrowserTitle
+from .datagrid import ColMd
 
 logger = logging.getLogger(__name__)
 
@@ -273,20 +273,45 @@ class Page:
         tree: bool = False,
         tree_column: Optional[str] = None,
         tree_delimiter: str = "~",
-        columns: Optional[List[g.ColMd]] = None,
+        columns: Optional[List[ColMd]] = None,
         show_index: bool = False,
         pinned_rows: int = 0,
         precision: int = 2,
         multiselect: bool = False,
         grid_options: Optional[dict] = None,
+        height: int = 500,
+        enterprise: bool = False,
+        license_key: str = "",
     ) -> "Page":
-        """Add an AG Grid dataframe display."""
+        """Add an AG Grid dataframe display.
+
+        Args:
+            name: Widget name for referencing
+            df: DataFrame to display
+            on_click: Callback for cell click events
+            tree: Enable tree data mode (requires enterprise=True)
+            tree_column: Column containing tree path
+            tree_delimiter: Delimiter for tree paths
+            columns: Column metadata for formatting (list of ColMd)
+            show_index: Show DataFrame index as column
+            pinned_rows: Number of rows to pin at top
+            precision: Default decimal precision
+            multiselect: Enable multiple row selection
+            grid_options: Additional AG Grid options
+            height: Grid height in pixels
+            enterprise: Enable AG Grid Enterprise features
+            license_key: AG Grid Enterprise license key
+
+        Returns:
+            Page instance for chaining
+        """
         if tree and tree_column and tree_column not in df.columns:
             raise ValueError(f"tree_column '{tree_column}' not found in DataFrame columns")
-        w = g.display_ag(
+
+        w = aggrid_anywidget.create_grid(
             df,
             is_tree=tree,
-            pathcol=tree_column,
+            pathcol=tree_column or "path",
             pathdelim=tree_delimiter,
             col_md=columns or [],
             showindex=show_index,
@@ -294,7 +319,10 @@ class Page:
             num_toppinned_rows=pinned_rows,
             grid_options=grid_options or {},
             default_precision=precision,
-            select_mode="multiple" if multiselect else None,
+            select_mode="multiple" if multiselect else "single",
+            height=height,
+            enterprise=enterprise,
+            license_key=license_key,
         )
         return self._add_widget(w, name)
 
@@ -353,7 +381,7 @@ class Page:
             node_size: Node radius in pixels.
             size_by_degree: Scale node size by degree.
         """
-        w = networkgraph.create_networkx_widget(
+        w = networkgraph.create_graph_d3(
             nx_graph=graph,
             width=width,
             height=height,
@@ -405,7 +433,7 @@ class Page:
             fit_width: If True, graph fills container width (default True)
             show_labels: If True, show node/edge labels (default True)
         """
-        w = graphvizgraph.create_graphviz_widget(
+        w = graphvizgraph.create_graphviz(
             nx_graph=graph,
             width=width,
             height=height,
@@ -676,19 +704,46 @@ class App:
 
 
 class _ThemeFixer:
-    """Fixes theme issues in Voila."""
+    """Fixes theme issues and enables dark mode detection for ipyvuetify."""
 
     def _repr_html_(self) -> str:
         return """<script>
-            if (window.location.href.indexOf('voila') >= 0){
-                const l=document.createElement('link');
-                l.setAttribute('rel','stylesheet');
-                l.setAttribute('type','text/css');
-                l.setAttribute('href',`${window.location.href.split('/').slice(0,7).join('/')}/static/theme-light.css`);
-                document.body.appendChild(l);
-                document.body.classList.remove('theme-dark')
-                document.body.classList.add('theme-light')
-            }
+            (function() {
+                // Detect dark mode from body background color
+                const bgColor = window.getComputedStyle(document.body).backgroundColor;
+                const rgbMatch = bgColor.match(/\\d+/g);
+                const isDark = rgbMatch
+                    ? rgbMatch.slice(0, 3).reduce((sum, v) => sum + parseInt(v), 0) < 384
+                    : false;
+
+                // Set ipyvuetify theme
+                if (typeof Jupyter !== 'undefined' && Jupyter.notebook) {
+                    // Classic notebook
+                    if (window.vuetify) {
+                        window.vuetify.framework.theme.dark = isDark;
+                    }
+                }
+
+                // Set CSS class for theme detection by other widgets
+                if (isDark) {
+                    document.body.classList.add('theme-dark');
+                    document.body.classList.remove('theme-light');
+                } else {
+                    document.body.classList.add('theme-light');
+                    document.body.classList.remove('theme-dark');
+                }
+
+                // Voila specific fixes
+                if (window.location.href.indexOf('voila') >= 0) {
+                    if (!isDark) {
+                        const l = document.createElement('link');
+                        l.setAttribute('rel', 'stylesheet');
+                        l.setAttribute('type', 'text/css');
+                        l.setAttribute('href', `${window.location.href.split('/').slice(0,7).join('/')}/static/theme-light.css`);
+                        document.body.appendChild(l);
+                    }
+                }
+            })();
         </script>"""
 
 
@@ -699,6 +754,19 @@ _STYLES = """
 
 .jupyter-widgets.widget-output{
     color: var(--jp-ui-font-color1, inherit);
+}
+
+/* Dark mode text colors */
+.theme-dark .jupyter-widgets.widget-output,
+.theme-dark .v-expansion-panel-content,
+.theme-dark .v-card__text,
+.theme-dark pre {
+    color: #e0e0e0 !important;
+}
+
+.theme-dark .v-expansion-panel,
+.theme-dark .v-expansion-panel-header {
+    color: #e0e0e0 !important;
 }
 
 .v-tabs div{
