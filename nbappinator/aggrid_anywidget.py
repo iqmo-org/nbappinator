@@ -190,6 +190,8 @@ class AGGridWidget(anywidget.AnyWidget):
                 const container = document.createElement("div");
                 container.style.height = `${height}px`;
                 container.style.width = width;
+                // Add theme class as fallback for CSS injection
+                container.className = isDark ? "ag-theme-quartz-dark" : "ag-theme-quartz";
                 el.appendChild(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
