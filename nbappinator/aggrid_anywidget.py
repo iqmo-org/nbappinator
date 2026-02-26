@@ -173,7 +173,6 @@ class AGGridWidget(anywidget.AnyWidget):
                     // Use esm.sh for enterprise (bundles dependencies)
                     const agGridModule = await import(`https://esm.sh/ag-grid-enterprise@${version}?bundle-deps`);
                     createGrid = agGridModule.createGrid;
-                    // Try themeQuartz first (newer), fall back to themeBalham
                     themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
                     colorSchemeDark = agGridModule.colorSchemeDark;
                     colorSchemeLight = agGridModule.colorSchemeLight;
@@ -252,6 +251,11 @@ class AGGridWidget(anywidget.AnyWidget):
                 `;
                 el.appendChild(container);
 
+                // Convert selection mode to new object format (v32.2.1+)
+                const rowSelectionConfig = selectMode === "multiple"
+                    ? { mode: "multiRow" }
+                    : { mode: "singleRow" };
+
                 const gridOptions = {
                     theme: gridTheme,  // New Theming API (v33+)
                     rowData: rowData,
@@ -261,7 +265,7 @@ class AGGridWidget(anywidget.AnyWidget):
                         filter: true,
                         resizable: true,
                     },
-                    rowSelection: selectMode,
+                    rowSelection: rowSelectionConfig,
                     animateRows: true,
                     onCellClicked: (event) => {
                         const cellData = {
