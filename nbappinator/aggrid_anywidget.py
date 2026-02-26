@@ -173,7 +173,8 @@ class AGGridWidget(anywidget.AnyWidget):
                     // Use esm.sh for enterprise (bundles dependencies)
                     const agGridModule = await import(`https://esm.sh/ag-grid-enterprise@${version}?bundle-deps`);
                     createGrid = agGridModule.createGrid;
-                    themeBalham = agGridModule.themeBalham;
+                    // Try themeQuartz first (newer), fall back to themeBalham
+                    themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
                     colorSchemeDark = agGridModule.colorSchemeDark;
                     colorSchemeLight = agGridModule.colorSchemeLight;
                     const ModuleRegistry = agGridModule.ModuleRegistry;
@@ -190,10 +191,10 @@ class AGGridWidget(anywidget.AnyWidget):
                         LicenseManager.setLicenseKey(licenseKey);
                     }
                 } else {
-                    // Use esm.sh for community (exports themes properly)
-                    const agGridModule = await import(`https://esm.sh/ag-grid-community@${version}`);
+                    // Use jsdelivr ESM for community
+                    const agGridModule = await import(`https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/+esm`);
                     createGrid = agGridModule.createGrid;
-                    themeBalham = agGridModule.themeBalham;
+                    themeBalham = agGridModule.themeQuartz || agGridModule.themeBalham;
                     colorSchemeDark = agGridModule.colorSchemeDark;
                     colorSchemeLight = agGridModule.colorSchemeLight;
                     const ModuleRegistry = agGridModule.ModuleRegistry;
@@ -206,7 +207,20 @@ class AGGridWidget(anywidget.AnyWidget):
                 }
 
                 // Build theme using new Theming API (v33+)
-                const gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
+                console.log("AG Grid theme exports:", {
+                    themeBalham: typeof themeBalham,
+                    colorSchemeDark: typeof colorSchemeDark,
+                    colorSchemeLight: typeof colorSchemeLight,
+                    isDark: isDark
+                });
+
+                let gridTheme;
+                if (themeBalham && colorSchemeDark && colorSchemeLight) {
+                    gridTheme = themeBalham.withPart(isDark ? colorSchemeDark : colorSchemeLight);
+                } else {
+                    console.warn("AG Grid theme parts not available, using default");
+                    gridTheme = themeBalham || "ag-theme-balham";
+                }
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
