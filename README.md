@@ -104,11 +104,34 @@ page.output("name")                # Output area for print statements
 ### Data and Charts
 
 ```py
-page.dataframe("name", df, on_click=callback, tree=True, tree_column="path")
+page.dataframe("name", df, on_click=callback)
+page.dataframe("name", df, tree=True, tree_column="path", enterprise=True)  # Tree requires enterprise
 page.plotly(fig)
 page.matplotlib(fig)
 page.networkx(graph, layout="force")   # D3 force-directed graph
 page.tree("name", paths=["a~b~c"], delimiter="~")  # D3 collapsible tree
+```
+
+### Standalone AG Grid
+
+Use `create_grid()` to create an AG Grid without the App wrapper:
+
+```py
+from nbappinator import create_grid, ColMd
+
+columns = [
+    ColMd(name="price", label="Price", format="dec", precision=2),
+    ColMd(name="change", label="Change %", format="perc", precision=2),
+]
+
+grid = create_grid(
+    df,
+    col_md=columns,
+    height=400,
+    enterprise=False,             # Set True for enterprise features
+    license_key="",               # Your AG Grid license key
+)
+grid
 ```
 
 ### Layout
@@ -154,13 +177,23 @@ nbappinator builds on some great projects that provide useful building blocks in
 
 [ipyvuetify](https://ipyvuetify.readthedocs.io/en/latest/) provides the underlying UI widgets, bringing modern VUE components to Jupyter.
 
-[AG Grid](https://ag-grid.com/) is an excellent javascript grid library, which [ipyaggrid](https://github.com/widgetti/ipyaggrid) provides as a Jupyter extension.
+[AG Grid](https://ag-grid.com/) is an excellent javascript grid library. nbappinator loads AG Grid via CDN using [anywidget](https://anywidget.dev/), supporting both Community and Enterprise editions.
 
 [Plotly](https://plotly.com/) is given first class support, although any matplotlib charting library works, such as Seaborn.
 
 [D3.js](https://d3js.org/) powers the interactive NetworkX graph visualizations and collapsible tree widgets.
 
 This all builds on [Jupyter](https://jupyter.org/) and [ipywidgets](https://ipywidgets.readthedocs.io/en/stable/).
+
+## External CDN Dependencies
+
+At runtime, nbappinator loads the following JavaScript libraries from CDN:
+
+- **AG Grid Community/Enterprise** from `cdn.jsdelivr.net` or `esm.sh`
+- **D3.js** from `cdn.jsdelivr.net`
+- **Graphviz WASM** from `cdn.jsdelivr.net` (for tree visualizations)
+
+This means an internet connection is required when first rendering widgets that use these libraries. Bundling these dependencies locally for offline/air-gapped use is technically feasible but not yet implemented.
 
 # Testing Notes
 

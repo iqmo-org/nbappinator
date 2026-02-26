@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 def set_default_template():
-    pio.templates.default = "plotly_white"
+    # Use "plotly" template which adapts better to both light and dark modes
+    # instead of hardcoded "plotly_white"
+    pio.templates.default = "plotly"
     pio.templates[pio.templates.default].layout.colorway = px.colors.sequential.Viridis  # type: ignore
 
 

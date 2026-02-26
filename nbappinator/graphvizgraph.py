@@ -324,7 +324,7 @@ def networkx_to_dot(
     return "\n".join(lines)
 
 
-def create_graphviz_widget(
+def create_graphviz(
     nx_graph,
     width: int = 800,
     height: int = 600,
