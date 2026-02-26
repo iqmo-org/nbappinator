@@ -167,6 +167,21 @@ def run_task(app):
     app.done("Complete")
 ```
 
+# Examples
+
+Interactive notebooks demonstrating nbappinator features are available in the [notebooks/](notebooks/) directory:
+
+| Feature | Example |
+|---------|---------|
+| Getting Started | [1_readme_example.ipynb](notebooks/1_readme_example.ipynb) |
+| Plotly Charts | [3_charts_plotly.ipynb](notebooks/3_charts_plotly.ipynb) |
+| Matplotlib | [3_charts_matplotlib.ipynb](notebooks/3_charts_matplotlib.ipynb) |
+| D3 Network Graphs | [4_networkx_graph.ipynb](notebooks/4_networkx_graph.ipynb) |
+| Graphviz Graphs | [5_graphviz_graph.ipynb](notebooks/5_graphviz_graph.ipynb) |
+| D3 Tree Widget | [6_tree_app.ipynb](notebooks/6_tree_app.ipynb) |
+| AG Grid (Community) | [7_grid_anywidget.ipynb](notebooks/7_grid_anywidget.ipynb) |
+| AG Grid (Enterprise) | [8_aggrid_enterprise.ipynb](notebooks/8_aggrid_enterprise.ipynb) |
+
 # Deployment and BQuant
 
 nbappinator was originally designed to simplify developing applications within Bloomberg's BQuant environment, which provides a managed but locked down Jupyter environment with a Voila-based deployment of applications.

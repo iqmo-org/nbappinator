@@ -5,6 +5,8 @@ import traitlets
 
 LayoutEngine = Literal["dot", "neato", "fdp", "sfdp", "circo", "twopi", "osage", "patchwork"]
 
+DEFAULT_GRAPHVIZ_VERSION = "latest"
+
 
 class GraphvizGraph(anywidget.AnyWidget):
     """Graphviz graph widget using WASM for rendering."""
@@ -16,12 +18,16 @@ class GraphvizGraph(anywidget.AnyWidget):
     scale = traitlets.Float(0.75).tag(sync=True)
     fit_width = traitlets.Bool(True).tag(sync=True)
     show_labels = traitlets.Bool(True).tag(sync=True)
+    graphviz_version = traitlets.Unicode(DEFAULT_GRAPHVIZ_VERSION).tag(sync=True)
 
     _esm = r"""
-    import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.js";
-    import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-
     async function render({ model, el }) {
+        const gvVersion = model.get("graphviz_version") || "latest";
+
+        // Dynamic imports - graphviz version configurable, d3 always latest (only used for zoom/pan)
+        const { Graphviz } = await import(`https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz@${gvVersion}/dist/index.js`);
+        const d3 = await import(`https://cdn.jsdelivr.net/npm/d3@latest/+esm`);
+
         const dotSource = model.get("dot_source");
         const width = model.get("width");
         const height = model.get("height");
@@ -335,6 +341,7 @@ def create_graphviz(
     scale: float = 0.75,
     fit_width: bool = True,
     show_labels: bool = True,
+    graphviz_version: str = DEFAULT_GRAPHVIZ_VERSION,
 ) -> GraphvizGraph:
     """
     Create a Graphviz widget from a NetworkX graph.
@@ -358,6 +365,8 @@ def create_graphviz(
         scale: Zoom scale (default 0.75 to zoom out). 1.0 = 100%, 0.5 = 50%
         fit_width: If True, graph fills container width (default True)
         show_labels: If True, show node/edge labels (default True)
+        graphviz_version: Graphviz WASM version to load from CDN (default: "latest").
+                         Examples: "latest", "1.6.1"
 
     Returns:
         GraphvizGraph widget
@@ -372,4 +381,5 @@ def create_graphviz(
         scale=scale,
         fit_width=fit_width,
         show_labels=show_labels,
+        graphviz_version=graphviz_version,
     )

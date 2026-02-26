@@ -5,6 +5,9 @@ import traitlets
 
 LayoutType = Literal["force", "radial", "hierarchical", "clustered"]
 
+# Default D3 version - use "latest" or pin to specific version like "7"
+DEFAULT_D3_VERSION = "latest"
+
 
 class NetworkGraph(anywidget.AnyWidget):
     """D3 force-directed graph widget for NetworkX graphs."""
@@ -21,11 +24,13 @@ class NetworkGraph(anywidget.AnyWidget):
     directed = traitlets.Bool(False).tag(sync=True)
     node_size = traitlets.Int(8).tag(sync=True)
     size_by_degree = traitlets.Bool(False).tag(sync=True)
+    d3_version = traitlets.Unicode(DEFAULT_D3_VERSION).tag(sync=True)
 
     _esm = r"""
-    import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+    async function render({ model, el }) {
+        const d3Version = model.get("d3_version") || "latest";
+        const d3 = await import(`https://cdn.jsdelivr.net/npm/d3@${d3Version}/+esm`);
 
-    export function render({ model, el }) {
         const origWidth = model.get("width");
         const origHeight = model.get("height");
         let width = origWidth;
@@ -256,6 +261,8 @@ class NetworkGraph(anywidget.AnyWidget):
         container.appendChild(fsBtn);
         el.appendChild(container);
     }
+
+    export default { render }
     """
 
 
@@ -271,6 +278,7 @@ def create_graph_d3(
     directed: bool = False,
     node_size: int = 8,
     size_by_degree: bool = False,
+    d3_version: str = DEFAULT_D3_VERSION,
 ) -> NetworkGraph:
     """
     Create a D3 force-directed graph widget from a NetworkX graph.
@@ -291,6 +299,8 @@ def create_graph_d3(
         directed: Whether to show directional arrows on edges. Default False.
         node_size: Node radius in pixels. Default 8.
         size_by_degree: Scale node size by degree (node_size + degree * 2). Default False.
+        d3_version: D3.js version to load from CDN (default: "latest").
+                   Examples: "latest", "7", "7.8.5"
 
     Returns:
         NetworkGraph widget
@@ -326,4 +336,5 @@ def create_graph_d3(
         directed=directed,
         node_size=node_size,
         size_by_degree=size_by_degree,
+        d3_version=d3_version,
     )
