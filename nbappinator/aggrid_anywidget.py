@@ -48,8 +48,7 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Inject structural CSS into a specific container (not document.head)
-    // This fixes layout issues in Jupyter where head styles don't cascade properly
+    // Inject structural CSS into a specific container for jupyter
     function injectStructuralCSS(container) {
         const style = document.createElement("style");
         style.textContent = `
