@@ -216,13 +216,37 @@ class AGGridWidget(anywidget.AnyWidget):
                 const extraOptions = JSON.parse(model.get("grid_options"));
 
                 // Clear loading message and create container
+                // Use explicit dark background color to avoid white gaps in dark mode
+                const darkBgColor = "#181d1f";  // AG Grid quartz dark theme background
                 el.innerHTML = "";
+                el.style.backgroundColor = isDark ? darkBgColor : "transparent";
+                el.style.width = width;  // Match container width to avoid white gap
                 const container = document.createElement("div");
                 container.style.height = `${height}px`;
                 container.style.width = width;
+                container.style.backgroundColor = isDark ? darkBgColor : "transparent";
                 el.appendChild(container);
 
-                // Inject structural CSS into container (fixes Jupyter layout issues)
+                if (isDark) {
+                    let parent = el.parentElement;
+                    while (parent && parent !== document.body) {
+                        const pBg = window.getComputedStyle(parent).backgroundColor;
+                        // Check if background is white/light (RGB sum > 600)
+                        const pRgb = pBg.match(/\\d+/g);
+                        if (pRgb && pRgb.slice(0, 3).reduce((s, v) => s + parseInt(v), 0) > 600) {
+                            parent.style.backgroundColor = darkBgColor;
+                        }
+                        // Stop at Jupyter output boundaries
+                        if (parent.classList.contains('jp-OutputArea') ||
+                            parent.classList.contains('jp-Cell-outputWrapper') ||
+                            parent.classList.contains('output')) {
+                            break;
+                        }
+                        parent = parent.parentElement;
+                    }
+                }
+
+                // Inject structural CSS into container for Jupyter
                 injectStructuralCSS(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
@@ -233,7 +257,7 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const gridOptions = {
                     theme: gridTheme,
-                    themeStyleContainer: container,  // Inject CSS into container, not document.head (fixes Jupyter)
+                    themeStyleContainer: container,  // Inject CSS into container, not document.head for Jupyter
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
