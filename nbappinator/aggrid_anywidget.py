@@ -49,6 +49,22 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
+    // Load AG Grid core CSS (structural layout)
+    async function loadAgGridCSS(version) {
+        const linkId = "ag-grid-core-css";
+        if (document.getElementById(linkId)) return;
+
+        const link = document.createElement("link");
+        link.id = linkId;
+        link.rel = "stylesheet";
+        link.href = `https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/styles/ag-grid.css`;
+        document.head.appendChild(link);
+
+        await new Promise(resolve => {
+            link.onload = resolve;
+            link.onerror = resolve;
+        });
+    }
 
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
@@ -116,6 +132,9 @@ class AGGridWidget(anywidget.AnyWidget):
             const version = model.get("aggrid_version") || "latest";
             const isEnterprise = model.get("enterprise") || false;
             const licenseKey = model.get("license_key") || "";
+
+            // Load core CSS first (structural layout)
+            await loadAgGridCSS(version);
 
             // Detect dark mode from body background color
             const bgColor = window.getComputedStyle(document.body).backgroundColor;
