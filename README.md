@@ -4,13 +4,12 @@
 
 | Name                                 |    Stmts |     Miss |   Cover |   Missing |
 |------------------------------------- | -------: | -------: | ------: | --------: |
-| nbappinator/\_\_init\_\_.py          |        8 |        0 |    100% |           |
+| nbappinator/\_\_init\_\_.py          |        7 |        0 |    100% |           |
 | nbappinator/\_version.py             |        1 |        0 |    100% |           |
-| nbappinator/aggrid\_anywidget.py     |      126 |       17 |     87% |332-335, 338-349, 363, 368, 382 |
-| nbappinator/app.py                   |      251 |       37 |     85% |241-242, 539, 560-561, 585, 597-605, 612-616, 628, 634, 638, 643, 647-651, 660, 673-675, 693-695, 706-708, 713 |
-| nbappinator/browser\_title.py        |        8 |        0 |    100% |           |
-| nbappinator/datagrid.py              |       15 |        1 |     93% |        29 |
-| nbappinator/graphvizgraph.py         |       61 |       10 |     84% |290-291, 300-301, 312-314, 327, 331, 337-339 |
+| nbappinator/aggrid\_anywidget.py     |      133 |       20 |     85% |507-510, 513-524, 538, 543, 704-707 |
+| nbappinator/app.py                   |      257 |       43 |     83% |240-241, 533-536, 560-564, 584-587, 598-606, 613-617, 629, 635, 639, 644, 648-652, 661, 674-676, 694-696, 707-709, 714 |
+| nbappinator/browser\_title.py        |        8 |        3 |     62% |   6-7, 10 |
+| nbappinator/graphvizgraph.py         |       61 |       10 |     84% |304-305, 314-315, 326-328, 341, 345, 351-353 |
 | nbappinator/jinjamagic.py            |        0 |        0 |    100% |           |
 | nbappinator/networkgraph.py          |       24 |        0 |    100% |           |
 | nbappinator/plotly\_charts.py        |       27 |        2 |     93% |     16-17 |
@@ -23,9 +22,9 @@
 | nbappinator/vuetify3/expansion.py    |        7 |        0 |    100% |           |
 | nbappinator/vuetify3/form.py         |       14 |        0 |    100% |           |
 | nbappinator/vuetify3/layout.py       |       10 |        0 |    100% |           |
-| nbappinator/vuetify3/output.py       |       29 |        1 |     97% |        90 |
+| nbappinator/vuetify3/output.py       |       29 |        1 |     97% |        88 |
 | nbappinator/vuetify3/tabs.py         |        7 |        0 |    100% |           |
-|                            **TOTAL** |  **670** |   **68** | **90%** |           |
+|                            **TOTAL** |  **667** |   **79** | **88%** |           |
 
 
 ## Setup coverage badge
