@@ -204,7 +204,7 @@ This all builds on [Jupyter](https://jupyter.org/) and [ipywidgets](https://ipyw
 
 At runtime, nbappinator loads the following JavaScript libraries from CDN:
 
-- **AG Grid Community/Enterprise** from `cdn.jsdelivr.net` or `esm.sh`
+- **AG Grid Community/Enterprise** from `cdn.jsdelivr.net`
 - **D3.js** from `cdn.jsdelivr.net`
 - **Graphviz WASM** from `cdn.jsdelivr.net` (for tree visualizations)
 

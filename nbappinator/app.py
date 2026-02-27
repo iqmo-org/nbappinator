@@ -1,36 +1,22 @@
-"""
-Example:
-    import nbappinator as nb
-
-    app = nb.App(tabs=["Chart"], header="Config", footer="Messages")
-
-    app.config.select("source", options=["a", "b"], default="a")
-    app.config.button("Draw", on_click=draw_chart, status=True)
-
-    def draw_chart(app):
-        app.status("Drawing...")
-        source = app["source"]
-
-        app.tab("Chart").clear()
-        app.tab("Chart").plotly(fig)
-
-        app.done()
-
-    app.display()
-"""
-
 import io
 import logging
 from functools import wraps
 from typing import Any, Callable, List, Optional, Union
 
-import ipyvuetify as v
 import ipywidgets
 from IPython.display import display
 
 from . import aggrid_anywidget, graphvizgraph, networkgraph, plotly_charts, treew
 from .browser_title import BrowserTitle
 from .datagrid import ColMd
+from .vuetify3 import (
+    VuetifyButtonWidget,
+    VuetifyDisplayWidget,
+    VuetifyExpansionWidget,
+    VuetifyFormWidget,
+    VuetifyOutputWidget,
+    VuetifyTabsWidget,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +41,19 @@ class Page:
             self._app._widgets[name] = widget
         return self
 
+    def _add_form_widget(
+        self,
+        name: str,
+        widget_type: str,
+        on_change: Optional[Callable] = None,
+        **kwargs,
+    ) -> "Page":
+        """Helper to create and add a VuetifyFormWidget."""
+        w = VuetifyFormWidget(widget_type=widget_type, **kwargs)
+        if on_change:
+            w.observe(self._app._wrap_callback_observe(on_change, name), names=["value"])
+        return self._add_widget(w, name)
+
     def select(
         self,
         name: str,
@@ -66,16 +65,16 @@ class Page:
         disabled: bool = False,
     ) -> "Page":
         """Add a dropdown select widget."""
-        w = v.Select(
+        return self._add_form_widget(
+            name,
+            "select",
+            on_change,
             label=label or name,
             items=options,
-            v_model=default,
+            value=default,
             multiple=multiple,
             disabled=disabled,
         )
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
 
     def combobox(
         self,
@@ -88,16 +87,16 @@ class Page:
         disabled: bool = False,
     ) -> "Page":
         """Add a combobox (select with text input)."""
-        w = v.Combobox(
+        return self._add_form_widget(
+            name,
+            "combobox",
+            on_change,
             label=label or name,
             items=options,
-            v_model=default,
+            value=default,
             multiple=multiple,
             disabled=disabled,
         )
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
 
     def slider(
         self,
@@ -111,18 +110,17 @@ class Page:
         disabled: bool = False,
     ) -> "Page":
         """Add a slider widget."""
-        w = v.Slider(
+        return self._add_form_widget(
+            name,
+            "slider",
+            on_change,
             label=label or name,
-            min=min_val,
-            max=max_val,
-            v_model=default if default is not None else min_val,
-            step=step,
-            thumb_label=True,
+            min_value=float(min_val),
+            max_value=float(max_val),
+            value=default if default is not None else min_val,
+            step=float(step),
             disabled=disabled,
         )
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
 
     def radio(
         self,
@@ -131,21 +129,19 @@ class Page:
         default=None,
         label: Optional[str] = None,
         on_change: Optional[Callable] = None,
-        horizontal: bool = False,
+        horizontal: bool = False,  # noqa: ARG002 - not yet supported in Vuetify3 widget
         disabled: bool = False,
     ) -> "Page":
         """Add radio buttons."""
-        children = [v.Radio(label=str(o), value=str(o)) for o in options]
-        w = v.RadioGroup(
+        return self._add_form_widget(
+            name,
+            "radio",
+            on_change,
             label=label or name,
-            children=children,
-            v_model=default,
-            row=horizontal,
+            items=options,
+            value=default,
             disabled=disabled,
         )
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
 
     def text(
         self,
@@ -157,13 +153,15 @@ class Page:
         disabled: bool = False,
     ) -> "Page":
         """Add a text input (single line or multiline)."""
-        if multiline:
-            w = v.Textarea(label=label or name, v_model=default, disabled=disabled)
-        else:
-            w = v.TextField(label=label or name, v_model=default, disabled=disabled)
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
+        widget_type = "textarea" if multiline else "text"
+        return self._add_form_widget(
+            name,
+            widget_type,
+            on_change,
+            label=label or name,
+            value=default,
+            disabled=disabled,
+        )
 
     def checkbox(
         self,
@@ -174,10 +172,14 @@ class Page:
         disabled: bool = False,
     ) -> "Page":
         """Add a checkbox widget."""
-        w = v.Checkbox(label=label or name, v_model=default, disabled=disabled)
-        if on_change:
-            w.on_event("change", self._app._wrap_callback(on_change, name))
-        return self._add_widget(w, name)
+        return self._add_form_widget(
+            name,
+            "checkbox",
+            on_change,
+            label=label or name,
+            value=default,
+            disabled=disabled,
+        )
 
     def button(
         self,
@@ -196,71 +198,47 @@ class Page:
             status: If True, adds a status display next to the button
             disabled: If True, button starts disabled
         """
-        btn_label = label or name
+        btn = VuetifyButtonWidget(
+            label=label or name,
+            disabled=disabled,
+            variant="outlined",
+            status_text="Ready" if status else "",
+        )
 
+        # Observe click count changes
+        btn.observe(self._app._wrap_callback_observe(on_click, name), names=["clicked"])
+
+        self._app._widgets[name] = btn
         if status:
-            # Create container for button + status
-            container = v.Html(tag="div", class_="d-flex flex-column", children=[])
-            btn = v.Btn(children=[btn_label], disabled=disabled, outlined=True)
+            self._app._status_widgets[name] = btn  # Widget handles its own status
 
-            status_field = v.TextField(
-                v_model="Ready",
-                disabled=True,
-                solo=True,
-                flat=True,
-                class_="for-progress",
-            )
-            progress = v.ProgressLinear(
-                class_="progress-bar",
-                color="blue",
-                indeterminate=True,
-            )
-            progress.hide()
-
-            container.children = [btn, status_field, progress]
-
-            # Store references
-            self._app._widgets[name] = btn
-            self._app._status_widgets[name] = {
-                "field": status_field,
-                "progress": progress,
-            }
-
-            btn.on_event("click", self._app._wrap_callback(on_click, name))
-            return self._add_widget(container)
-        else:
-            btn = v.Btn(children=[btn_label], disabled=disabled, outlined=True)
-            btn.on_event("click", self._app._wrap_callback(on_click, name))
-            self._app._widgets[name] = btn
-            return self._add_widget(btn, name)
+        return self._add_widget(btn, name)
 
     # --- Display widgets ---
 
     def label(self, text: str, name: Optional[str] = None) -> "Page":
         """Add a static text label."""
-        w = v.CardText(children=[text])
+        w = VuetifyDisplayWidget(widget_type="label", content=text)
         return self._add_widget(w, name)
 
     def pre(self, text: str, name: Optional[str] = None) -> "Page":
         """Add preformatted text."""
-        w = v.Html(tag="pre", children=[text], style_="max-height:80vh")
+        w = VuetifyDisplayWidget(widget_type="pre", content=text)
         return self._add_widget(w, name)
 
     def html(self, content: str, name: Optional[str] = None) -> "Page":
         """Add raw HTML content."""
-        w = v.Html(tag="div", children=[content])
+        w = VuetifyDisplayWidget(widget_type="html", content=content)
         return self._add_widget(w, name)
 
-    def separator(self, color: str = "gray") -> "Page":
+    def separator(self, color: str = "gray") -> "Page":  # noqa: ARG002 - color not yet supported
         """Add a horizontal separator line."""
-        w = v.Html(tag="hr", style_=f"border: none; border-top: 5px solid {color};")
+        w = VuetifyDisplayWidget(widget_type="separator")
         return self._add_widget(w)
 
-    def output(self, name: str, max_lines: Optional[int] = None) -> "Page":
+    def output(self, name: str, max_lines: Optional[int] = None) -> "Page":  # noqa: ARG002
         """Add an output area for print statements."""
-        w = ipywidgets.Output()
-        if max_lines:
-            w.max_outputs = max_lines
+        w = VuetifyOutputWidget()
         return self._add_widget(w, name)
 
     # --- Data/Chart widgets ---
@@ -461,7 +439,10 @@ class Page:
 
     def row(self, name: Optional[str] = None) -> "Page":
         """Add a horizontal container. Returns the new container as a Page."""
-        w = v.Html(tag="div", class_="d-flex flex-row", children=[])
+        w = ipywidgets.HBox(
+            children=[],
+            layout=ipywidgets.Layout(display="flex", flex_flow="row", background="transparent"),
+        )
         self._add_widget(w, name)
         if name:
             self._app._containers[name] = w
@@ -469,7 +450,10 @@ class Page:
 
     def column(self, name: Optional[str] = None) -> "Page":
         """Add a vertical container. Returns the new container as a Page."""
-        w = v.Html(tag="div", class_="d-flex flex-column", children=[])
+        w = ipywidgets.VBox(
+            children=[],
+            layout=ipywidgets.Layout(display="flex", flex_flow="column", background="transparent"),
+        )
         self._add_widget(w, name)
         if name:
             self._app._containers[name] = w
@@ -515,73 +499,116 @@ class App:
 
         self._widgets: dict = {}
         self._containers: dict = {}
-        self._status_widgets: dict = {}  # name -> {field, progress}
+        self._status_widgets: dict = {}  # name -> VuetifyButtonWidget with status
         self._pages: dict[str, Page] = {}
         self._current_caller: Optional[str] = None  # Track which button triggered callback
 
         # Build UI structure
-        self._tab_widget: Optional[v.Tabs] = None
-        self._header_widget: Optional[v.ExpansionPanels] = None
-        self._footer_widget: Optional[v.ExpansionPanels] = None
-        self._messages: Optional[ipywidgets.Output] = None
+        self._tab_widget: Optional[VuetifyTabsWidget] = None
+        self._tab_contents: List[ipywidgets.VBox] = []
+        self._header_widget: Optional[VuetifyExpansionWidget] = None
+        self._header_content: Optional[ipywidgets.VBox] = None
+        self._footer_widget: Optional[VuetifyExpansionWidget] = None
+        self._footer_content: Optional[ipywidgets.VBox] = None
+        self._messages: Optional[VuetifyOutputWidget] = None
 
         self._build_ui()
 
     def _build_ui(self):
         """Build the UI structure."""
-        from ipyvuetify import Tab, TabItem
-
-        # Header
+        # Header (collapsible)
         if self._header_name:
-            header_content = v.ExpansionPanelContent(children=[])
-            self._pages[self._header_name] = Page(self, self._header_name, header_content)
-            self._header_widget = v.ExpansionPanels(
-                children=[
-                    v.ExpansionPanel(
-                        children=[
-                            v.ExpansionPanelHeader(children=[self._header_name]),
-                            header_content,
-                        ]
-                    )
-                ],
-                v_model=[0],
-                multiple=True,
+            self._header_content = ipywidgets.VBox(
+                children=[],
+                layout=ipywidgets.Layout(
+                    background="transparent",
+                    padding="8px 8px 8px 12px",
+                    margin="0 0 0 4px",
+                    border_left="2px solid rgba(128,128,128,0.3)",
+                ),
             )
+            self._pages[self._header_name] = Page(self, self._header_name, self._header_content)
+            self._header_widget = VuetifyExpansionWidget(title=self._header_name, expanded=True)
+
+            header_content = self._header_content
+            header_widget = self._header_widget
+            assert header_content is not None
+            assert header_widget is not None
+
+            def on_header_expand(change):
+                header_content.layout.display = "block" if change["new"] else "none"
+
+            header_widget.observe(on_header_expand, names=["expanded"])
 
         # Tabs
-        tab_children = []
-        for tab_name in self._tabs:
-            tab = Tab(children=[tab_name])
-            tab_item = TabItem(children=[], style_="padding-left: 20px; padding-right: 20px;")
-            tab_children.extend([tab, tab_item])
-            self._pages[tab_name] = Page(self, tab_name, tab_item)
-        self._tab_widget = v.Tabs(v_model=[0], children=tab_children)
-
-        # Footer
-        if self._footer_name:
-            footer_content = v.ExpansionPanelContent(children=[])
-            self._pages[self._footer_name] = Page(self, self._footer_name, footer_content)
-            self._footer_widget = v.ExpansionPanels(
-                children=[
-                    v.ExpansionPanel(
-                        children=[
-                            v.ExpansionPanelHeader(children=[self._footer_name]),
-                            footer_content,
-                        ]
-                    )
-                ]
+        self._tab_contents = []
+        for i, tab_name in enumerate(self._tabs):
+            content = ipywidgets.VBox(
+                children=[],
+                layout=ipywidgets.Layout(padding="10px 20px", background="transparent"),
             )
-            # Add output widget to footer
-            self._messages = ipywidgets.Output()
-            self._messages.max_outputs = 100  # type: ignore[attr-defined]
+            content.layout.display = "block" if i == 0 else "none"
+            self._tab_contents.append(content)
+            self._pages[tab_name] = Page(self, tab_name, content)
+
+        if self._tabs:
+            self._tab_widget = VuetifyTabsWidget(tabs=self._tabs, selected=0)
+            tab_widget = self._tab_widget
+            assert tab_widget is not None
+
+            def on_tab_change(change):
+                for j, c in enumerate(self._tab_contents):
+                    c.layout.display = "block" if j == change["new"] else "none"
+
+            tab_widget.observe(on_tab_change, names=["selected"])
+
+        # Footer (collapsible)
+        if self._footer_name:
+            self._footer_content = ipywidgets.VBox(
+                children=[],
+                layout=ipywidgets.Layout(
+                    background="transparent",
+                    padding="8px 8px 8px 12px",
+                    margin="0 0 0 4px",
+                    border_left="2px solid rgba(128,128,128,0.3)",
+                ),
+            )
+            self._pages[self._footer_name] = Page(self, self._footer_name, self._footer_content)
+            self._footer_widget = VuetifyExpansionWidget(title=self._footer_name, expanded=False)
+
+            footer_content = self._footer_content
+            footer_widget = self._footer_widget
+            assert footer_content is not None
+            assert footer_widget is not None
+
+            def on_footer_expand(change):
+                footer_content.layout.display = "block" if change["new"] else "none"
+
+            footer_widget.observe(on_footer_expand, names=["expanded"])
+
+            self._messages = VuetifyOutputWidget()
             footer_content.children = [self._messages]
             self._widgets["_messages"] = self._messages
+            footer_content.layout.display = "none"
 
     def _wrap_callback(self, func: Callable, caller_name: str) -> Callable:
-        """Wrap a user callback to simplify its signature."""
+        """Wrap a user callback for ipyvuetify on_event style."""
 
         @wraps(func)
         def wrapper(*args, **kwargs):
+            self._current_caller = caller_name
+            try:
+                return func(self)
+            finally:
+                self._current_caller = None
+
+        return wrapper
+
+    def _wrap_callback_observe(self, func: Callable, caller_name: str) -> Callable:
+        """Wrap a user callback for traitlets observe style."""
+
+        @wraps(func)
+        def wrapper(change):
             self._current_caller = caller_name
             try:
                 return func(self)
@@ -609,10 +636,10 @@ class App:
         # Handle different widget types
         if hasattr(w, "current_selection"):  # DataGrid
             return w.current_selection
-        if hasattr(w, "value") and callable(w.value):  # Tree
+        if hasattr(w, "value") and callable(w.value):  # Tree (value is a method)
             return w.value()
-        if hasattr(w, "v_model"):
-            return w.v_model
+        if hasattr(w, "value"):  # Vuetify3 widgets use 'value' traitlet
+            return w.value
         return None
 
     def set(self, name: str, value):
@@ -620,8 +647,8 @@ class App:
         w = self._widgets.get(name)
         if w is None:
             raise KeyError(f"No widget named '{name}'")
-        if hasattr(w, "v_model"):
-            w.v_model = value
+        if hasattr(w, "value"):
+            w.value = value
 
     # --- Page access ---
 
@@ -663,9 +690,9 @@ class App:
         if not name or name not in self._status_widgets:
             return
 
-        status = self._status_widgets[name]
-        status["field"].v_model = message
-        status["progress"].show()
+        btn = self._status_widgets[name]
+        btn.status_text = message
+        btn.loading = True
 
     def done(self, message: str = "Done", caller: Optional[str] = None):
         """Mark the current (or specified) button as done.
@@ -676,124 +703,51 @@ class App:
         if not name or name not in self._status_widgets:
             return
 
-        status = self._status_widgets[name]
-        status["field"].v_model = message
-        status["progress"].hide()
+        btn = self._status_widgets[name]
+        btn.status_text = message
+        btn.loading = False
 
     def display(self):
         """Display the app."""
-        display(_ThemeFixer())
         if self._title:
             display(BrowserTitle(self._title))
 
         children = []
+
         if self._header_widget:
             children.append(self._header_widget)
+        if self._header_content:
+            self._header_content.layout.padding = "8px 0"
+            children.append(self._header_content)
+
+        if self._header_widget and self._tabs:
+            children.append(
+                ipywidgets.HTML(
+                    value='<hr style="border: none; border-top: 1px solid rgba(128,128,128,0.2); margin: 12px 0;">',
+                    layout=ipywidgets.Layout(background="transparent"),
+                )
+            )
+
         if self._tab_widget:
             children.append(self._tab_widget)
+        children.extend(self._tab_contents)
+
+        if self._tabs and self._footer_widget:
+            children.append(
+                ipywidgets.HTML(
+                    value='<hr style="border: none; border-top: 1px solid rgba(128,128,128,0.2); margin: 12px 0;">',
+                    layout=ipywidgets.Layout(background="transparent"),
+                )
+            )
+
         if self._footer_widget:
             children.append(self._footer_widget)
+        if self._footer_content:
+            self._footer_content.layout.padding = "8px 0"
+            children.append(self._footer_content)
 
-        return v.Html(
-            tag="div",
-            children=[
-                v.Html(tag="style", children=[_STYLES]),
-                v.Container(children=children),
-            ],
+        container = ipywidgets.VBox(
+            children=children,
+            layout=ipywidgets.Layout(background="transparent"),
         )
-
-
-class _ThemeFixer:
-    """Fixes theme issues and enables dark mode detection for ipyvuetify."""
-
-    def _repr_html_(self) -> str:
-        return """<script>
-            (function() {
-                // Detect dark mode from body background color
-                const bgColor = window.getComputedStyle(document.body).backgroundColor;
-                const rgbMatch = bgColor.match(/\\d+/g);
-                const isDark = rgbMatch
-                    ? rgbMatch.slice(0, 3).reduce((sum, v) => sum + parseInt(v), 0) < 384
-                    : false;
-
-                // Set ipyvuetify theme
-                if (typeof Jupyter !== 'undefined' && Jupyter.notebook) {
-                    // Classic notebook
-                    if (window.vuetify) {
-                        window.vuetify.framework.theme.dark = isDark;
-                    }
-                }
-
-                // Set CSS class for theme detection by other widgets
-                if (isDark) {
-                    document.body.classList.add('theme-dark');
-                    document.body.classList.remove('theme-light');
-                } else {
-                    document.body.classList.add('theme-light');
-                    document.body.classList.remove('theme-dark');
-                }
-
-                // Voila specific fixes
-                if (window.location.href.indexOf('voila') >= 0) {
-                    if (!isDark) {
-                        const l = document.createElement('link');
-                        l.setAttribute('rel', 'stylesheet');
-                        l.setAttribute('type', 'text/css');
-                        l.setAttribute('href', `${window.location.href.split('/').slice(0,7).join('/')}/static/theme-light.css`);
-                        document.body.appendChild(l);
-                    }
-                }
-            })();
-        </script>"""
-
-
-_STYLES = """
-.vuetify-styles code, .vuetify-styles kbd, .vuetify-styles samp{
-    color: inherit !important;
-}
-
-.jupyter-widgets.widget-output{
-    color: var(--jp-ui-font-color1, inherit);
-}
-
-/* Dark mode text colors */
-.theme-dark .jupyter-widgets.widget-output,
-.theme-dark .v-expansion-panel-content,
-.theme-dark .v-card__text,
-.theme-dark pre {
-    color: #e0e0e0 !important;
-}
-
-.theme-dark .v-expansion-panel,
-.theme-dark .v-expansion-panel-header {
-    color: #e0e0e0 !important;
-}
-
-.v-tabs div{
-    transition: none !important;
-}
-
-.for-progress .v-text-field__details{
-    display: none !important;
-}
-
-.for-progress .v-input__control{
-    min-height: 0px !important;
-}
-
-.for-progress input{
-    text-align: center;
-}
-
-.progress-bar{
-    margin-left: 10px
-}
-
-.vuetify-styles .v-container{
-    min-width: 80vw
-}
-
-.ag-header {
-    position: relative;
-}
-"""
+        return container
