@@ -57,14 +57,12 @@ class VuetifyOutputWidget(anywidget.AnyWidget):
                     :style="{{
                         maxHeight: maxHeight,
                         overflow: 'auto',
-                        padding: '12px',
+                        padding: 'var(--nbapp-spacing-md)',
                         margin: '0',
-                        fontFamily: 'monospace',
+                        fontFamily: 'var(--nbapp-font-mono)',
                         fontSize: '13px',
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word',
-                        borderRadius: '4px',
-                        border: '1px solid rgba(128,128,128,0.3)',
                     }}"
                 >{{{{ content }}}}</pre>
             `

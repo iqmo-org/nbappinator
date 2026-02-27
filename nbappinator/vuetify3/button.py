@@ -51,14 +51,13 @@ class VuetifyButtonWidget(anywidget.AnyWidget):
                 return {{ label, disabled, color, variant, loading, statusText, statusColor, onClick }};
             }},
             template: `
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div class="d-flex align-center flex-wrap ga-3">
                     <v-btn
                         :color="color"
                         :variant="variant"
                         :disabled="disabled || loading"
                         :loading="loading"
                         @click="onClick"
-                        density="default"
                     >
                         {{{{ label }}}}
                     </v-btn>
@@ -66,10 +65,10 @@ class VuetifyButtonWidget(anywidget.AnyWidget):
                         v-if="statusText"
                         :style="{{
                             fontSize: '14px',
-                            color: statusColor === 'success' ? '#4caf50' :
-                                   statusColor === 'error' ? '#f44336' :
-                                   statusColor === 'warning' ? '#ff9800' :
-                                   statusColor === 'info' ? '#2196f3' : 'inherit'
+                            color: statusColor === 'success' ? 'rgb(var(--v-theme-success))' :
+                                   statusColor === 'error' ? 'rgb(var(--v-theme-error))' :
+                                   statusColor === 'warning' ? 'rgb(var(--v-theme-warning))' :
+                                   statusColor === 'info' ? 'rgb(var(--v-theme-info))' : 'inherit'
                         }}"
                     >
                         {{{{ statusText }}}}

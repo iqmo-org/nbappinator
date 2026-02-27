@@ -45,10 +45,10 @@ class VuetifyDisplayWidget(anywidget.AnyWidget):
                 return {{ widgetType, content, title, src, width, height }};
             }},
             template: `
-                <div v-if="widgetType === 'label'" style="padding: 4px 0;">
+                <div v-if="widgetType === 'label'" :style="{{ padding: 'var(--nbapp-spacing-xs) 0' }}">
                     {{{{ content }}}}
                 </div>
-                <pre v-else-if="widgetType === 'pre'" style="padding: 12px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 13px;">{{{{ content }}}}</pre>
+                <pre v-else-if="widgetType === 'pre'" :style="{{ padding: 'var(--nbapp-spacing-md)', borderRadius: 'var(--nbapp-radius)', overflowX: 'auto', fontFamily: 'var(--nbapp-font-mono)', fontSize: '13px' }}">{{{{ content }}}}</pre>
                 <div v-else-if="widgetType === 'html'" v-html="content"></div>
                 <v-divider v-else-if="widgetType === 'separator'" class="my-3" />
                 <v-img

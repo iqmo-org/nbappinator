@@ -7,10 +7,14 @@ import anywidget
 import pandas as pd
 import traitlets
 
-from .datagrid import ColMd
-
 # Default AG Grid version
 DEFAULT_AGGRID_VERSION = "latest"
+
+# Built-in format types
+FORMAT_DEFAULT = "default"
+FORMAT_DECIMAL = "decimal"
+FORMAT_PERCENT = "percent"
+FORMAT_MAG_SI = "mag_si"
 
 
 class AGGridWidget(anywidget.AnyWidget):
@@ -27,6 +31,12 @@ class AGGridWidget(anywidget.AnyWidget):
     theme = traitlets.Unicode("ag-theme-balham").tag(sync=True)
     auto_size_columns = traitlets.Bool(False).tag(sync=True)  # Auto-fit columns to content
     size_columns_to_fit = traitlets.Bool(False).tag(sync=True)  # Fit columns to grid width
+
+    # Styling
+    spacing = traitlets.Int(4).tag(sync=True)  # Cell padding
+    font_size = traitlets.Int(12).tag(sync=True)  # Font size in pixels
+    row_height = traitlets.Int(28).tag(sync=True)  # Row height in pixels
+    header_height = traitlets.Int(32).tag(sync=True)  # Header height in pixels
 
     # Tree data
     is_tree = traitlets.Bool(False).tag(sync=True)
@@ -112,7 +122,23 @@ class AGGridWidget(anywidget.AnyWidget):
     function processColumnDefs(columnDefs) {
         return columnDefs.map(col => {
             const processed = { ...col };
-            if (col._format) {
+
+            // Handle string valueFormatter FIRST - user's custom formatter takes precedence
+            // This allows custom formatters like: "params => params.value.toFixed(2) + '%'"
+            if (typeof col.valueFormatter === 'string') {
+                try {
+                    // Use Function constructor to safely evaluate the arrow function string
+                    processed.valueFormatter = new Function('return ' + col.valueFormatter)();
+                    // Skip _format processing since user provided custom formatter
+                    delete processed._format;
+                    delete processed._precision;
+                } catch (e) {
+                    console.warn('Invalid valueFormatter string:', e);
+                    delete processed.valueFormatter;
+                }
+            }
+            // Only use _format if no custom valueFormatter was provided
+            else if (col._format) {
                 const formatter = createValueFormatter(col._format, col._precision || 2);
                 if (formatter) {
                     processed.valueFormatter = formatter;
@@ -120,6 +146,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 delete processed._format;
                 delete processed._precision;
             }
+
             return processed;
         });
     }
@@ -169,8 +196,21 @@ class AGGridWidget(anywidget.AnyWidget):
                     }
                 }
 
-                // Build theme using Theming API
-                const gridTheme = themeQuartz.withPart(isDark ? colorSchemeDark : colorSchemeLight);
+                // Build theme using Theming API with configurable styling
+                const spacing = model.get("spacing") || 4;
+                const fontSize = model.get("font_size") || 12;
+                const rowHeight = model.get("row_height") || 28;
+                const headerHeight = model.get("header_height") || 32;
+
+                const gridTheme = themeQuartz
+                    .withPart(isDark ? colorSchemeDark : colorSchemeLight)
+                    .withParams({
+                        spacing: spacing,
+                        fontSize: fontSize,
+                        headerFontSize: fontSize,
+                        rowHeight: rowHeight,
+                        headerHeight: headerHeight,
+                    });
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
@@ -293,6 +333,89 @@ class AGGridWidget(anywidget.AnyWidget):
                     }
                 }, 200);
 
+                // Custom context menu (works without Enterprise)
+                const contextMenu = document.createElement("div");
+                contextMenu.style.cssText = `
+                    display: none;
+                    position: fixed;
+                    background: ${isDark ? '#2d2d2d' : '#fff'};
+                    border: 1px solid ${isDark ? '#555' : '#ccc'};
+                    border-radius: 4px;
+                    box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    min-width: 150px;
+                    font-size: 12px;
+                    color: ${isDark ? '#e0e0e0' : '#333'};
+                `;
+
+                const menuItems = [
+                    { label: "Copy Cell", action: "copyCell" },
+                    { label: "Copy Row", action: "copyRow" },
+                    { label: "---", action: "separator" },
+                    { label: "Export CSV", action: "exportCsv" },
+                ];
+
+                menuItems.forEach(item => {
+                    if (item.action === "separator") {
+                        const sep = document.createElement("div");
+                        sep.style.cssText = `height: 1px; background: ${isDark ? '#555' : '#ddd'}; margin: 4px 0;`;
+                        contextMenu.appendChild(sep);
+                    } else {
+                        const menuItem = document.createElement("div");
+                        menuItem.textContent = item.label;
+                        menuItem.dataset.action = item.action;
+                        menuItem.style.cssText = `
+                            padding: 6px 12px;
+                            cursor: pointer;
+                        `;
+                        menuItem.onmouseenter = () => menuItem.style.background = isDark ? '#404040' : '#f0f0f0';
+                        menuItem.onmouseleave = () => menuItem.style.background = 'transparent';
+                        contextMenu.appendChild(menuItem);
+                    }
+                });
+
+                document.body.appendChild(contextMenu);
+
+                let contextCell = null;
+
+                container.addEventListener("contextmenu", (e) => {
+                    e.preventDefault();
+                    const cell = e.target.closest(".ag-cell");
+                    if (cell) {
+                        contextCell = cell;
+                        contextMenu.style.display = "block";
+                        contextMenu.style.left = e.clientX + "px";
+                        contextMenu.style.top = e.clientY + "px";
+                    }
+                });
+
+                document.addEventListener("click", () => {
+                    contextMenu.style.display = "none";
+                });
+
+                contextMenu.addEventListener("click", (e) => {
+                    const action = e.target.dataset.action;
+                    if (!action) return;
+
+                    if (action === "copyCell" && contextCell) {
+                        const text = contextCell.textContent || "";
+                        navigator.clipboard.writeText(text);
+                    } else if (action === "copyRow") {
+                        const focusedCell = gridApi.getFocusedCell();
+                        if (focusedCell) {
+                            const rowNode = gridApi.getDisplayedRowAtIndex(focusedCell.rowIndex);
+                            if (rowNode && rowNode.data) {
+                                const values = Object.values(rowNode.data).join("\\t");
+                                navigator.clipboard.writeText(values);
+                            }
+                        }
+                    } else if (action === "exportCsv") {
+                        gridApi.exportDataAsCsv({ fileName: "export.csv" });
+                    }
+
+                    contextMenu.style.display = "none";
+                });
+
                 // Handle data updates
                 model.on("change:row_data", () => {
                     const newData = JSON.parse(model.get("row_data"));
@@ -307,6 +430,9 @@ class AGGridWidget(anywidget.AnyWidget):
                 return () => {
                     if (gridApi && gridApi.destroy) {
                         gridApi.destroy();
+                    }
+                    if (contextMenu && contextMenu.parentNode) {
+                        contextMenu.parentNode.removeChild(contextMenu);
                     }
                 };
 
@@ -372,48 +498,63 @@ class AGGridWidget(anywidget.AnyWidget):
         self._df = value
 
 
-def _build_column_def(
-    col: str,
-    md: Optional[ColMd] = None,
+def get_column_defs(
+    df: pd.DataFrame,
     precision: int = 2,
-) -> Dict:
-    """Build AG Grid column definition from ColMd."""
-    if md is None:
-        md = ColMd(name=col)
+) -> List[Dict[str, Any]]:
+    """
+    Generate AG Grid columnDefs from a DataFrame.
 
-    col_def = {
-        "field": col,
-        "headerName": md.label or col.title().replace("_", " "),
-        "width": 150,
-        "minWidth": 100,
-    }
+    Returns native AG Grid column definitions that can be customized
+    before passing to create_grid().
 
-    if md.hidden:
-        col_def["hide"] = True
+    Args:
+        df: Source DataFrame
+        precision: Default decimal precision for numeric columns
 
-    if md.pinned:
-        col_def["pinned"] = "left"
+    Returns:
+        List of AG Grid columnDef dictionaries
+    """
+    column_defs = []
 
-    prec = md.precision if md.precision is not None else precision
+    for col in df.columns:
+        col_str = str(col)
+        col_def: Dict[str, Any] = {
+            "field": col_str,
+            "headerName": col_str.replace("_", " ").title(),
+        }
 
-    # Pass format metadata - JS will create the actual formatter
-    if md.format in ("perc", "percent", "perc_div"):
-        col_def["_format"] = "perc"
-        col_def["_precision"] = prec
-        col_def["cellStyle"] = {"textAlign": "right"}
-    elif md.format.startswith("dec"):
-        col_def["_format"] = "dec"
-        col_def["_precision"] = prec
-        col_def["cellStyle"] = {"textAlign": "right"}
-    elif md.format == "mag_si":
-        col_def["_format"] = "mag_si"
-        col_def["_precision"] = prec
-        col_def["cellStyle"] = {"textAlign": "right"}
-    else:
-        col_def["_format"] = "default"
-        col_def["_precision"] = prec
-        col_def["cellStyle"] = {"textAlign": "right"}
+        # Infer type-appropriate defaults for numeric columns
+        if pd.api.types.is_numeric_dtype(df[col]):
+            col_def["type"] = "numericColumn"
+            col_def["cellStyle"] = {"textAlign": "right"}
+            col_def["_format"] = "default"
+            col_def["_precision"] = precision
 
+        column_defs.append(col_def)
+
+    return column_defs
+
+
+def apply_format(
+    col_def: Dict[str, Any],
+    format_type: str = FORMAT_DEFAULT,
+    precision: int = 2,
+) -> Dict[str, Any]:
+    """
+    Apply a built-in format to a column definition.
+
+    Args:
+        col_def: AG Grid column definition dictionary
+        format_type: Format type - FORMAT_DEFAULT, FORMAT_DECIMAL, FORMAT_PERCENT, FORMAT_MAG_SI
+        precision: Decimal precision
+
+    Returns:
+        The modified col_def (also modifies in place)
+    """
+    col_def["_format"] = format_type
+    col_def["_precision"] = precision
+    col_def["cellStyle"] = {"textAlign": "right"}
     return col_def
 
 
@@ -422,7 +563,7 @@ def create_grid(
     is_tree: bool = False,
     pathcol: str = "path",
     pathdelim: str = "/",
-    col_md: Optional[List[ColMd]] = None,
+    column_defs: Optional[List[Dict[str, Any]]] = None,
     showindex: bool = False,
     action: Optional[Callable] = None,
     num_toppinned_rows: int = 0,
@@ -438,6 +579,10 @@ def create_grid(
     aggrid_version: str = DEFAULT_AGGRID_VERSION,
     enterprise: bool = False,
     license_key: str = "",
+    spacing: int = 4,
+    font_size: int = 12,
+    row_height: int = 28,
+    header_height: int = 32,
 ) -> AGGridWidget:
     """
     Create an AG Grid widget using anywidget (no ipyaggrid dependency).
@@ -447,7 +592,7 @@ def create_grid(
         is_tree: Enable tree data mode
         pathcol: Column containing tree path
         pathdelim: Delimiter for tree paths
-        col_md: Column metadata for formatting
+        column_defs: AG Grid column definitions (use get_column_defs() to generate, then customize)
         showindex: Show DataFrame index as column
         action: Callback for cell click events
         num_toppinned_rows: Number of rows to pin at top
@@ -464,12 +609,29 @@ def create_grid(
                        Examples: "latest", "35.1.0"
         enterprise: Enable AG Grid Enterprise features (requires valid license)
         license_key: AG Grid Enterprise license key
+        spacing: Cell padding in pixels (default: 4)
+        font_size: Font size in pixels (default: 12)
+        row_height: Row height in pixels (default: 28)
+        header_height: Header height in pixels (default: 32)
 
     Returns:
         AGGridWidget instance
+
+    Example:
+        >>> # Basic usage - auto-generated columns
+        >>> grid = create_grid(df)
+
+        >>> # Custom columns with formatting
+        >>> cols = get_column_defs(df)
+        >>> apply_format(cols[1], FORMAT_MAG_SI)  # Apply MAG_SI to second column
+        >>> cols[0]["pinned"] = "left"  # Pin first column
+        >>> grid = create_grid(df, column_defs=cols)
+
+        >>> # Custom JS formatter
+        >>> cols = get_column_defs(df)
+        >>> cols[2]["valueFormatter"] = "params => '$' + params.value.toFixed(2)"
+        >>> grid = create_grid(df, column_defs=cols)
     """
-    if col_md is None:
-        col_md = []
     if grid_options is None:
         grid_options = {}
 
@@ -479,24 +641,15 @@ def create_grid(
     if showindex:
         df = df.reset_index()
 
-    col_md_map = {md.name: md for md in col_md}
-    column_defs = []
-
-    for md in col_md:
-        if md.name in df.columns:
-            column_defs.append(_build_column_def(md.name, md, default_precision))
-
-    for col in df.columns:
-        if col not in col_md_map:
-            md = ColMd(name=col)
-            # Only hide tree columns when enterprise mode is enabled (tree will actually work)
-            if is_tree and enterprise and col in ["index", pathcol, "path", "label", "full_label"]:
-                md.hidden = True
-            column_defs.append(_build_column_def(col, md, default_precision))
-
-    for md in col_md:
-        if md.format == "perc_div" and md.name in df.columns:
-            df[md.name] = df[md.name] / 100
+    # Generate column definitions if not provided
+    if column_defs is None:
+        column_defs = get_column_defs(df, precision=default_precision)
+        # Hide tree columns when enterprise mode is enabled
+        if is_tree and enterprise:
+            tree_cols = {"index", pathcol, "path", "label", "full_label"}
+            for col_def in column_defs:
+                if col_def.get("field") in tree_cols:
+                    col_def["hide"] = True
 
     if num_toppinned_rows > 0:
         pinned_data = df.iloc[:num_toppinned_rows].to_dict(orient="records")
@@ -522,6 +675,10 @@ def create_grid(
         aggrid_version=aggrid_version,
         enterprise=enterprise,
         license_key=license_key,
+        spacing=spacing,
+        font_size=font_size,
+        row_height=row_height,
+        header_height=header_height,
     )
 
     if action is not None:
@@ -530,3 +687,45 @@ def create_grid(
     widget.df = df
 
     return widget
+
+
+_original_dataframe_repr_html = None
+
+
+def register_grid_renderer(height: int = 400, **grid_kwargs) -> None:
+    """
+    Register create_grid as the default renderer for pandas DataFrames.
+
+    After calling this, any DataFrame displayed in a notebook cell will
+    automatically render as an AG Grid instead of the default HTML table.
+
+    Args:
+        height: Default grid height in pixels
+        **grid_kwargs: Additional arguments passed to create_grid (e.g., enterprise, license_key)
+    """
+    global _original_dataframe_repr_html
+
+    # Save original _repr_html_ method
+    if _original_dataframe_repr_html is None:
+        _original_dataframe_repr_html = pd.DataFrame._repr_html_
+
+    def _grid_repr_html_(self):
+        from IPython.display import display
+
+        grid = create_grid(self, height=height, **grid_kwargs)
+        display(grid)
+        return ""  # Return empty string to suppress default output
+
+    # Monkey-patch DataFrame's _repr_html_
+    pd.DataFrame._repr_html_ = _grid_repr_html_
+
+
+def unregister_grid_renderer() -> None:
+    """
+    Restore default pandas DataFrame rendering.
+    """
+    global _original_dataframe_repr_html
+
+    if _original_dataframe_repr_html is not None:
+        pd.DataFrame._repr_html_ = _original_dataframe_repr_html
+        _original_dataframe_repr_html = None
