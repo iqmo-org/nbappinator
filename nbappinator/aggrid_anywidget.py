@@ -321,7 +321,6 @@ class AGGridWidget(anywidget.AnyWidget):
                 const gridApi = createGrid(container, gridOptions);
 
                 // Force layout refresh after theme CSS applies
-                // This fixes header/body overlap in JupyterLab
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         if (gridApi) {
