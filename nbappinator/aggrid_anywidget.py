@@ -253,7 +253,7 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const gridOptions = {
                     theme: gridTheme,
-                    themeStyleContainer: container,  // Inject CSS into container, not document.head for Jupyter
+                    themeStyleContainer: document.body,  // Use body to ensure styles load after app styles
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
