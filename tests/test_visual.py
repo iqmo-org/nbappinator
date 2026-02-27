@@ -2,10 +2,16 @@
 nbconvert + Playwright to convert notebooks to images for review
 """
 
+import os
 from pathlib import Path
 
 import nbformat
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    os.environ.get("GITHUB_ACTIONS") == "true",
+    reason="Visual tests require Playwright browsers (not installed in CI)",
+)
 from nbconvert import HTMLExporter
 from nbconvert.preprocessors import ExecutePreprocessor
 from playwright.sync_api import sync_playwright
