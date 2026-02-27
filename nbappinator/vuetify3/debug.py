@@ -217,9 +217,18 @@ class ThemeDebugWidget(anywidget.AnyWidget):
         setupThemeWatcher(vuetifyCard, cardSection, mountElCard);
 
         // ========================================
-        // SECTION 7: DOM Ancestry Check
+        // SECTION 7: AG Grid Debug
         // ========================================
-        const domSection = createSection('7. DOM ANCESTRY (background colors from widget to body)');
+        const agSection = createSection('7. AG GRID DEBUG');
+        const agPre = document.createElement('pre');
+        agPre.style.cssText = 'font-family: monospace; font-size: 11px; padding: 10px; margin: 0; background: #1a1a1a; color: #d4d4d4; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;';
+        agSection.appendChild(agPre);
+        el.appendChild(agSection);
+
+        // ========================================
+        // SECTION 8: DOM Ancestry Check
+        // ========================================
+        const domSection = createSection('8. DOM ANCESTRY (background colors from widget to body)');
         const domPre = document.createElement('pre');
         domPre.style.cssText = 'font-family: monospace; font-size: 11px; padding: 10px; margin: 0; background: #1a1a1a; color: #d4d4d4; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;';
         domSection.appendChild(domPre);
@@ -270,6 +279,84 @@ class ThemeDebugWidget(anywidget.AnyWidget):
                 info.push(`Tabs mount: ${{mountElTabs.className}}`);
 
                 pre.textContent = info.join('\\n');
+
+                // AG Grid debug
+                const agInfo = [];
+
+                // Check for AG Grid styles in DOM
+                agInfo.push('--- AG GRID STYLES IN DOM ---');
+                let agStyleCount = 0;
+                document.querySelectorAll('style').forEach((s, i) => {{
+                    const content = s.textContent || '';
+                    if (content.includes('ag-theme') || content.includes('--ag-') || content.includes('.ag-root')) {{
+                        agStyleCount++;
+                        agInfo.push(`Style #${{i}}: ${{content.substring(0, 150).replace(/\\n/g, ' ')}}...`);
+                    }}
+                }});
+                agInfo.push(`Total AG Grid styles found: ${{agStyleCount}}`);
+
+                // Check for AG Grid elements
+                agInfo.push('\\n--- AG GRID ELEMENTS ---');
+                const agRoot = document.querySelector('.ag-root-wrapper');
+                const agHeader = document.querySelector('.ag-header');
+                const agBody = document.querySelector('.ag-body-viewport');
+                const agRows = document.querySelectorAll('.ag-row');
+
+                if (agRoot) {{
+                    agInfo.push(`ag-root-wrapper found: class="${{agRoot.className}}"`);
+                    agInfo.push(`  computed height: ${{getComputedStyle(agRoot).height}}`);
+                }} else {{
+                    agInfo.push('ag-root-wrapper: NOT FOUND (no grid on page?)');
+                }}
+
+                if (agHeader) {{
+                    const headerStyle = getComputedStyle(agHeader);
+                    agInfo.push(`ag-header found:`);
+                    agInfo.push(`  height: ${{headerStyle.height}}`);
+                    agInfo.push(`  position: ${{headerStyle.position}}`);
+                    agInfo.push(`  top: ${{headerStyle.top}}`);
+                }} else {{
+                    agInfo.push('ag-header: NOT FOUND');
+                }}
+
+                if (agBody) {{
+                    const bodyStyle = getComputedStyle(agBody);
+                    agInfo.push(`ag-body-viewport found:`);
+                    agInfo.push(`  height: ${{bodyStyle.height}}`);
+                    agInfo.push(`  position: ${{bodyStyle.position}}`);
+                    agInfo.push(`  top: ${{bodyStyle.top}}`);
+                    agInfo.push(`  transform: ${{bodyStyle.transform}}`);
+                }} else {{
+                    agInfo.push('ag-body-viewport: NOT FOUND');
+                }}
+
+                agInfo.push(`\\nag-row elements found: ${{agRows.length}}`);
+                if (agRows.length > 0) {{
+                    const firstRow = agRows[0];
+                    const rowStyle = getComputedStyle(firstRow);
+                    agInfo.push(`First row:`);
+                    agInfo.push(`  class: ${{firstRow.className}}`);
+                    agInfo.push(`  transform: ${{rowStyle.transform}}`);
+                    agInfo.push(`  top: ${{rowStyle.top}}`);
+                }}
+
+                // Check theme container
+                agInfo.push('\\n--- THEME INJECTION ---');
+                const bodyStyles = document.body.querySelectorAll('style');
+                let themeInBody = 0;
+                bodyStyles.forEach(s => {{
+                    if ((s.textContent || '').includes('--ag-')) themeInBody++;
+                }});
+                agInfo.push(`Theme styles in body: ${{themeInBody}}`);
+
+                const headStyles = document.head.querySelectorAll('style');
+                let themeInHead = 0;
+                headStyles.forEach(s => {{
+                    if ((s.textContent || '').includes('--ag-')) themeInHead++;
+                }});
+                agInfo.push(`Theme styles in head: ${{themeInHead}}`);
+
+                agPre.textContent = agInfo.join('\\n');
 
                 // DOM ancestry
                 const domInfo = [];
