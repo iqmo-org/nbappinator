@@ -200,7 +200,7 @@ nbappinator was originally designed to simplify developing applications within B
 
 nbappinator builds on some great projects that provide useful building blocks in Jupyter, which themselves build on other great web technologies. At the same time, nbappinator is implementation agnostic - a core goal is to allow any of these components to be swapped out.
 
-[ipyvuetify](https://ipyvuetify.readthedocs.io/en/latest/) provides the underlying UI widgets, bringing modern VUE components to Jupyter.
+[Vue.js](https://vuejs.org/) The Progressive JavaScript Framework
 
 [AG Grid](https://ag-grid.com/) is an excellent javascript grid library. nbappinator loads AG Grid via CDN using [anywidget](https://anywidget.dev/), supporting both Community and Enterprise editions.
 
