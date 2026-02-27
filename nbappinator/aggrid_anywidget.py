@@ -48,47 +48,19 @@ class AGGridWidget(anywidget.AnyWidget):
     clicked_cell = traitlets.Unicode("{}").tag(sync=True)
 
     _esm = """
-    // Inject structural CSS into a specific container for jupyter
-    function injectStructuralCSS(container) {
-        const style = document.createElement("style");
+    function injectNotebookStyles(isDark) {
+        const styleId = 'ag-grid-notebook-fix';
+        if (document.getElementById(styleId)) return;  // Already injected
+
+        const style = document.createElement('style');
+        style.id = styleId;
         style.textContent = `
-            .ag-root-wrapper {
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                position: relative;
-            }
-            .ag-root-wrapper-body {
-                display: flex;
-                flex: 1 1 auto;
-                overflow: hidden;
-                position: relative;
-            }
-            .ag-root {
-                display: flex;
-                flex-direction: column;
-                flex: 1 1 auto;
-                overflow: hidden;
-            }
-            .ag-header {
-                flex: none;
-                position: relative;
-                z-index: 1;
-            }
-            .ag-body {
-                display: flex;
-                flex: 1 1 auto;
-                flex-direction: column;
-                overflow: hidden;
-                position: relative;
-            }
-            .ag-body-viewport {
-                flex: 1 1 auto;
-                overflow: auto;
-                position: relative;
+            .cell-output-ipywidget-background,
+            .cell-output-ipywidget-background > * {
+                background-color: ${isDark ? '#181d1f' : '#fff'} !important;
             }
         `;
-        container.appendChild(style);
+        document.head.appendChild(style);
     }
 
     // Create value formatter based on format type
@@ -173,7 +145,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 let createGrid, themeQuartz, colorSchemeDark, colorSchemeLight;
 
                 if (isEnterprise) {
-                    const ag = await import(`https://esm.sh/ag-grid-enterprise@${version}?bundle-deps`);
+                    const ag = await import(`https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${version}/+esm`);
                     createGrid = ag.createGrid;
                     themeQuartz = ag.themeQuartz;
                     colorSchemeDark = ag.colorSchemeDark;
@@ -186,7 +158,7 @@ class AGGridWidget(anywidget.AnyWidget):
                         ag.LicenseManager.setLicenseKey(licenseKey);
                     }
                 } else {
-                    const ag = await import(`https://esm.sh/ag-grid-community@${version}`);
+                    const ag = await import(`https://cdn.jsdelivr.net/npm/ag-grid-community@${version}/+esm`);
                     createGrid = ag.createGrid;
                     themeQuartz = ag.themeQuartz;
                     colorSchemeDark = ag.colorSchemeDark;
@@ -216,38 +188,22 @@ class AGGridWidget(anywidget.AnyWidget):
                 const extraOptions = JSON.parse(model.get("grid_options"));
 
                 // Clear loading message and create container
-                // Use explicit dark background color to avoid white gaps in dark mode
+                // Use explicit background color to avoid white gaps
                 const darkBgColor = "#181d1f";  // AG Grid quartz dark theme background
+                const lightBgColor = "#fff";     // AG Grid quartz light theme background
+                const bgColor = isDark ? darkBgColor : lightBgColor;
+
                 el.innerHTML = "";
-                el.style.backgroundColor = isDark ? darkBgColor : "transparent";
-                el.style.width = width;  // Match container width to avoid white gap
+                el.style.backgroundColor = bgColor;
+                el.style.width = width;
+
                 const container = document.createElement("div");
                 container.style.height = `${height}px`;
-                container.style.width = width;
-                container.style.backgroundColor = isDark ? darkBgColor : "transparent";
+                container.style.width = "100%";
+                container.style.backgroundColor = bgColor;
                 el.appendChild(container);
 
-                if (isDark) {
-                    let parent = el.parentElement;
-                    while (parent && parent !== document.body) {
-                        const pBg = window.getComputedStyle(parent).backgroundColor;
-                        // Check if background is white/light (RGB sum > 600)
-                        const pRgb = pBg.match(/\\d+/g);
-                        if (pRgb && pRgb.slice(0, 3).reduce((s, v) => s + parseInt(v), 0) > 600) {
-                            parent.style.backgroundColor = darkBgColor;
-                        }
-                        // Stop at Jupyter output boundaries
-                        if (parent.classList.contains('jp-OutputArea') ||
-                            parent.classList.contains('jp-Cell-outputWrapper') ||
-                            parent.classList.contains('output')) {
-                            break;
-                        }
-                        parent = parent.parentElement;
-                    }
-                }
-
-                // Inject structural CSS into container for Jupyter
-                injectStructuralCSS(container);
+                injectNotebookStyles(isDark);
 
                 // Convert selection mode to new object format (v32.2.1+)
                 // checkboxes: false to avoid showing checkbox column
@@ -476,8 +432,8 @@ def create_grid(
     select_mode: Optional[Literal["single", "multiple"]] = "single",
     height: int = 500,
     width: str = "100%",
-    auto_size_columns: bool = True,
-    size_columns_to_fit: bool = True,
+    auto_size_columns: bool = False,
+    size_columns_to_fit: bool = False,
     theme: str = "ag-theme-balham",
     aggrid_version: str = DEFAULT_AGGRID_VERSION,
     enterprise: bool = False,

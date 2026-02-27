@@ -36,15 +36,35 @@ class GraphvizGraph(anywidget.AnyWidget):
         const fitWidth = model.get("fit_width");
         const showLabels = model.get("show_labels");
 
-        // Detect dark mode
-        const isDark = window.getComputedStyle(document.body).backgroundColor
-            .match(/\d+/g)?.slice(0, 3)
-            .reduce((sum, v) => sum + parseInt(v), 0) < 384;
-        const borderColor = isDark ? "#555" : "#ccc";
-        const bgColor = isDark ? "#1e1e1e" : "#ffffff";
-        const textColor = isDark ? "#e0e0e0" : "#333";
+        const borderColor = "#444";
+        const bgColor = "#1e1e1e";
+        const textColor = "#e0e0e0";
 
-        // Create container - full width if fitWidth is true
+        function isLightColor(color) {
+            if (!color || color === "none") return false;
+            let r, g, b;
+            if (color.startsWith("#")) {
+                const hex = color.slice(1);
+                if (hex.length === 3) {
+                    r = parseInt(hex[0] + hex[0], 16);
+                    g = parseInt(hex[1] + hex[1], 16);
+                    b = parseInt(hex[2] + hex[2], 16);
+                } else {
+                    r = parseInt(hex.slice(0, 2), 16);
+                    g = parseInt(hex.slice(2, 4), 16);
+                    b = parseInt(hex.slice(4, 6), 16);
+                }
+            } else if (color.startsWith("rgb")) {
+                const match = color.match(/\d+/g);
+                if (match) [r, g, b] = match.map(Number);
+            } else {
+                const lightColors = ["white", "yellow", "cyan", "lime", "aqua", "lightyellow", "lightblue", "lightgreen", "lightgray", "lightgrey", "beige", "ivory", "snow", "honeydew", "mintcream", "aliceblue", "lavender", "mistyrose", "lemonchiffon", "papayawhip", "seashell", "oldlace", "linen", "antiquewhite", "bisque", "peachpuff", "navajowhite", "moccasin", "cornsilk", "floralwhite", "ghostwhite", "azure", "lavenderblush"];
+                return lightColors.includes(color.toLowerCase());
+            }
+            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            return luminance > 160;
+        }
+
         const container = document.createElement("div");
         container.style.cssText = `
             position: relative;
@@ -56,7 +76,6 @@ class GraphvizGraph(anywidget.AnyWidget):
             overflow: hidden;
         `;
 
-        // Create toolbar with buttons
         const toolbar = document.createElement("div");
         toolbar.style.cssText = `
             position: absolute; top: 8px; right: 8px; z-index: 1000;
@@ -70,25 +89,21 @@ class GraphvizGraph(anywidget.AnyWidget):
             cursor: pointer; opacity: 0.8;
         `;
 
-        // Reset zoom button
         const resetBtn = document.createElement("button");
         resetBtn.innerHTML = "⟲";
         resetBtn.title = "Reset zoom";
         resetBtn.style.cssText = btnStyle;
 
-        // Zoom in button
         const zoomInBtn = document.createElement("button");
         zoomInBtn.innerHTML = "+";
         zoomInBtn.title = "Zoom in";
         zoomInBtn.style.cssText = btnStyle;
 
-        // Zoom out button
         const zoomOutBtn = document.createElement("button");
         zoomOutBtn.innerHTML = "−";
         zoomOutBtn.title = "Zoom out";
         zoomOutBtn.style.cssText = btnStyle;
 
-        // Fullscreen button
         const fsBtn = document.createElement("button");
         fsBtn.innerHTML = "⛶";
         fsBtn.title = "Toggle fullscreen";
@@ -99,7 +114,6 @@ class GraphvizGraph(anywidget.AnyWidget):
         toolbar.appendChild(zoomInBtn);
         toolbar.appendChild(fsBtn);
 
-        // Add hover effects
         [resetBtn, zoomInBtn, zoomOutBtn, fsBtn].forEach(btn => {
             btn.onmouseenter = () => btn.style.opacity = "1";
             btn.onmouseleave = () => btn.style.opacity = "0.8";
@@ -128,28 +142,23 @@ class GraphvizGraph(anywidget.AnyWidget):
             }
         };
 
-        // Handle Escape key
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape" && isFullscreen) {
                 fsBtn.click();
             }
         });
 
-        // SVG container for pan/zoom
         const svgContainer = document.createElement("div");
         svgContainer.style.cssText = `
             width: 100%; height: 100%;
             cursor: grab;
         `;
-
-        // Loading indicator
         svgContainer.innerHTML = '<div style="color: ' + textColor + '; padding: 20px;">Loading Graphviz...</div>';
 
         container.appendChild(svgContainer);
         container.appendChild(toolbar);
         el.appendChild(container);
 
-        // Load Graphviz WASM and render
         try {
             const graphviz = await Graphviz.load();
             const svgString = graphviz.layout(dotSource, "svg", engine);
@@ -157,61 +166,67 @@ class GraphvizGraph(anywidget.AnyWidget):
 
             const svgEl = svgContainer.querySelector("svg");
             if (svgEl) {
-                // Remove explicit dimensions so preserveAspectRatio works properly
                 svgEl.removeAttribute("width");
                 svgEl.removeAttribute("height");
                 svgEl.style.width = "100%";
                 svgEl.style.height = "100%";
                 svgEl.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-                // Apply dark mode styles to SVG if needed
-                if (isDark) {
-                    // Fix text colors
-                    svgEl.querySelectorAll("text").forEach(t => {
-                        if (t.getAttribute("fill") === "black" || !t.getAttribute("fill")) {
-                            t.setAttribute("fill", textColor);
-                        }
-                    });
-                    // Fix polygon fills (background)
-                    svgEl.querySelectorAll("polygon").forEach(p => {
-                        const fill = p.getAttribute("fill");
-                        if (fill === "white" || fill === "#ffffff") {
-                            p.setAttribute("fill", bgColor);
-                        }
-                        // Fix polygon strokes (arrows, etc)
-                        const stroke = p.getAttribute("stroke");
-                        if (stroke === "black" || stroke === "#000000") {
-                            p.setAttribute("stroke", textColor);
-                        }
-                    });
-                    // Fix path strokes (edges/lines)
-                    svgEl.querySelectorAll("path").forEach(p => {
-                        const stroke = p.getAttribute("stroke");
-                        if (stroke === "black" || stroke === "#000000") {
-                            p.setAttribute("stroke", "#888888");
-                        }
-                    });
-                    // Fix ellipse strokes (nodes)
-                    svgEl.querySelectorAll("ellipse").forEach(e => {
-                        const stroke = e.getAttribute("stroke");
-                        if (stroke === "black" || stroke === "#000000") {
-                            e.setAttribute("stroke", textColor);
-                        }
-                    });
-                }
+                const nodeColors = new Map();
+                svgEl.querySelectorAll("g.node").forEach(g => {
+                    const shape = g.querySelector("ellipse, polygon, rect");
+                    if (shape) {
+                        const fill = shape.getAttribute("fill");
+                        nodeColors.set(g, fill);
+                    }
+                });
 
-                // Hide labels if showLabels is false
+                svgEl.querySelectorAll("text").forEach(t => {
+                    const parentNode = t.closest("g.node");
+                    if (parentNode && nodeColors.has(parentNode)) {
+                        const nodeFill = nodeColors.get(parentNode);
+                        t.setAttribute("fill", isLightColor(nodeFill) ? "#1a1a1a" : textColor);
+                    } else if (t.getAttribute("fill") === "black" || !t.getAttribute("fill")) {
+                        t.setAttribute("fill", textColor);
+                    }
+                });
+
+                const polygons = svgEl.querySelectorAll("polygon");
+                if (polygons.length > 0) {
+                    const first = polygons[0];
+                    const fill = first.getAttribute("fill");
+                    if (fill === "white" || fill === "#ffffff") {
+                        first.setAttribute("fill", bgColor);
+                    }
+                }
+                polygons.forEach(p => {
+                    const stroke = p.getAttribute("stroke");
+                    if (stroke === "black" || stroke === "#000000") {
+                        p.setAttribute("stroke", textColor);
+                    }
+                });
+
+                svgEl.querySelectorAll("path").forEach(p => {
+                    const stroke = p.getAttribute("stroke");
+                    if (stroke === "black" || stroke === "#000000") {
+                        p.setAttribute("stroke", "#888888");
+                    }
+                });
+
+                svgEl.querySelectorAll("ellipse").forEach(e => {
+                    const stroke = e.getAttribute("stroke");
+                    if (stroke === "black" || stroke === "#000000") {
+                        e.setAttribute("stroke", textColor);
+                    }
+                });
                 if (!showLabels) {
                     svgEl.querySelectorAll("text").forEach(t => {
                         t.style.display = "none";
                     });
                 }
 
-                // Setup D3 zoom/pan with wrapper group to avoid transform conflicts
                 const svg = d3.select(svgEl);
                 const originalG = svg.select("g");
-
-                // Create wrapper group for zoom transforms
                 const zoomG = document.createElementNS("http://www.w3.org/2000/svg", "g");
                 zoomG.setAttribute("class", "zoom-layer");
                 originalG.node().parentNode.insertBefore(zoomG, originalG.node());
@@ -227,16 +242,13 @@ class GraphvizGraph(anywidget.AnyWidget):
 
                 svg.call(zoom);
 
-                // Use identity transform - preserveAspectRatio handles centering
                 const initialTransform = d3.zoomIdentity;
                 svg.call(zoom.transform, initialTransform);
 
-                // Button handlers
                 resetBtn.onclick = () => svg.transition().duration(300).call(zoom.transform, initialTransform);
                 zoomInBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 1.3);
                 zoomOutBtn.onclick = () => svg.transition().duration(200).call(zoom.scaleBy, 0.7);
 
-                // Change cursor on drag
                 svg.on("mousedown", () => svgContainer.style.cursor = "grabbing");
                 svg.on("mouseup", () => svgContainer.style.cursor = "grab");
             }
