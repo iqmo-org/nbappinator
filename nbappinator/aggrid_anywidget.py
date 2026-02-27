@@ -287,6 +287,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 el.appendChild(container);
 
                 injectNotebookStyles(isDark);
+                injectStructuralCSS(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
                 // checkboxes: false to avoid showing checkbox column
@@ -296,7 +297,7 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const gridOptions = {
                     theme: gridTheme,
-                    themeStyleContainer: document.body,  // Use body to ensure styles load after app styles
+                    themeStyleContainer: container,  // Inject CSS into container for Jupyter isolation
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
@@ -362,20 +363,6 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 // Create grid
                 const gridApi = createGrid(container, gridOptions);
-
-                // Force layout refresh after theme CSS applies
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        if (gridApi) {
-                            gridApi.refreshHeader();
-                            // Trigger full layout recalculation
-                            const currentHeight = container.style.height;
-                            container.style.height = '0px';
-                            container.offsetHeight;  // Force reflow
-                            container.style.height = currentHeight;
-                        }
-                    });
-                });
 
                 // Size columns after data renders
                 setTimeout(() => {
