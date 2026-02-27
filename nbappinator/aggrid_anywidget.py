@@ -683,7 +683,8 @@ def create_grid(
         >>> cols[2]["valueFormatter"] = "params => '$' + params.value.toFixed(2)"
         >>> grid = create_grid(df, column_defs=cols)
     """
-    if grid_options is None:
+    if grid_options is None and len(input_df) > 20:
+        # Apply default pagination
         grid_options = {"pagination": True, "paginationPageSize": 20}
 
     df = input_df.copy()
