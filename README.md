@@ -2,20 +2,30 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/iqmo-org/nbappinator/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                             |    Stmts |     Miss |   Cover |   Missing |
-|--------------------------------- | -------: | -------: | ------: | --------: |
-| nbappinator/\_\_init\_\_.py      |        8 |        0 |    100% |           |
-| nbappinator/\_version.py         |        1 |        0 |    100% |           |
-| nbappinator/aggrid\_anywidget.py |      126 |       17 |     87% |376-379, 382-393, 407, 412, 426 |
-| nbappinator/app.py               |      240 |       30 |     88% |165, 179, 261-264, 585-589, 601, 607, 611, 616, 620-624, 633, 646-648, 666-668, 679-681, 687 |
-| nbappinator/browser\_title.py    |        8 |        0 |    100% |           |
-| nbappinator/datagrid.py          |       15 |        1 |     93% |        29 |
-| nbappinator/graphvizgraph.py     |       59 |       10 |     83% |272-273, 282-283, 294-296, 309, 313, 319-321 |
-| nbappinator/jinjamagic.py        |        0 |        0 |    100% |           |
-| nbappinator/networkgraph.py      |       22 |        0 |    100% |           |
-| nbappinator/plotly\_charts.py    |       30 |        2 |     93% |     18-19 |
-| nbappinator/treew.py             |       46 |        2 |     96% |  266, 282 |
-|                        **TOTAL** |  **555** |   **62** | **89%** |           |
+| Name                                 |    Stmts |     Miss |   Cover |   Missing |
+|------------------------------------- | -------: | -------: | ------: | --------: |
+| nbappinator/\_\_init\_\_.py          |        8 |        0 |    100% |           |
+| nbappinator/\_version.py             |        1 |        0 |    100% |           |
+| nbappinator/aggrid\_anywidget.py     |      126 |       17 |     87% |332-335, 338-349, 363, 368, 382 |
+| nbappinator/app.py                   |      251 |       37 |     85% |241-242, 539, 560-561, 585, 597-605, 612-616, 628, 634, 638, 643, 647-651, 660, 673-675, 693-695, 706-708, 713 |
+| nbappinator/browser\_title.py        |        8 |        0 |    100% |           |
+| nbappinator/datagrid.py              |       15 |        1 |     93% |        29 |
+| nbappinator/graphvizgraph.py         |       61 |       10 |     84% |290-291, 300-301, 312-314, 327, 331, 337-339 |
+| nbappinator/jinjamagic.py            |        0 |        0 |    100% |           |
+| nbappinator/networkgraph.py          |       24 |        0 |    100% |           |
+| nbappinator/plotly\_charts.py        |       27 |        2 |     93% |     16-17 |
+| nbappinator/treew.py                 |       37 |        0 |    100% |           |
+| nbappinator/vuetify3/\_\_init\_\_.py |       10 |        0 |    100% |           |
+| nbappinator/vuetify3/base.py         |        5 |        0 |    100% |           |
+| nbappinator/vuetify3/button.py       |       13 |        0 |    100% |           |
+| nbappinator/vuetify3/debug.py        |        6 |        0 |    100% |           |
+| nbappinator/vuetify3/display.py      |       11 |        0 |    100% |           |
+| nbappinator/vuetify3/expansion.py    |        7 |        0 |    100% |           |
+| nbappinator/vuetify3/form.py         |       14 |        0 |    100% |           |
+| nbappinator/vuetify3/layout.py       |       10 |        0 |    100% |           |
+| nbappinator/vuetify3/output.py       |       29 |        1 |     97% |        90 |
+| nbappinator/vuetify3/tabs.py         |        7 |        0 |    100% |           |
+|                            **TOTAL** |  **670** |   **68** | **90%** |           |
 
 
 ## Setup coverage badge
