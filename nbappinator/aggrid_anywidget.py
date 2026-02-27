@@ -684,7 +684,7 @@ def create_grid(
         >>> grid = create_grid(df, column_defs=cols)
     """
     if grid_options is None:
-        grid_options = {}
+        grid_options = {"pagination": True, "paginationPageSize": 20}
 
     df = input_df.copy()
     if flatten_columns:
