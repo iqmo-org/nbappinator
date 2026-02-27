@@ -29,6 +29,7 @@ class AGGridWidget(anywidget.AnyWidget):
     height = traitlets.Int(500).tag(sync=True)
     width = traitlets.Unicode("100%").tag(sync=True)  # Can be "100%", "500px", etc.
     theme = traitlets.Unicode("ag-theme-balham").tag(sync=True)
+    auto_height = traitlets.Bool(True).tag(sync=True)  # Auto-size grid to fit rows
     auto_size_columns = traitlets.Bool(False).tag(sync=True)  # Auto-fit columns to content
     size_columns_to_fit = traitlets.Bool(False).tag(sync=True)  # Fit columns to grid width
 
@@ -257,6 +258,7 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
+                const autoHeight = model.get("auto_height");
                 const isTree = model.get("is_tree");
                 const pathCol = model.get("path_col");
                 const pathDelim = model.get("path_delim");
@@ -281,7 +283,9 @@ class AGGridWidget(anywidget.AnyWidget):
                 el.style.width = width;
 
                 const container = document.createElement("div");
-                container.style.height = `${height}px`;
+                if (!autoHeight) {
+                    container.style.height = `${height}px`;
+                }
                 container.style.width = "100%";
                 container.style.backgroundColor = bgColor;
                 el.appendChild(container);
@@ -298,6 +302,7 @@ class AGGridWidget(anywidget.AnyWidget):
                 const gridOptions = {
                     theme: gridTheme,
                     themeStyleContainer: container,  // Inject CSS into container for Jupyter isolation
+                    domLayout: autoHeight ? 'autoHeight' : 'normal',
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
@@ -617,6 +622,7 @@ def create_grid(
     select_mode: Optional[Literal["single", "multiple"]] = "single",
     height: int = 500,
     width: str = "100%",
+    auto_height: bool = True,
     auto_size_columns: bool = False,
     size_columns_to_fit: bool = False,
     theme: str = "ag-theme-balham",
@@ -644,9 +650,10 @@ def create_grid(
         flatten_columns: Flatten MultiIndex columns
         default_precision: Default decimal precision
         select_mode: Row selection mode ('single' or 'multiple')
-        height: Grid height in pixels
+        height: Grid height in pixels (only used when auto_height=False)
         width: Grid width (e.g., "100%", "600px", "50vw")
-        auto_size_columns: Auto-size columns to fit their content (default: True)
+        auto_height: Auto-size grid height to fit rows (default: True)
+        auto_size_columns: Auto-size columns to fit their content
         size_columns_to_fit: Size columns to fit grid width (overrides auto_size_columns)
         theme: AG Grid theme class
         aggrid_version: AG Grid version to load from CDN (default: "latest")
@@ -709,6 +716,7 @@ def create_grid(
         pinned_top_rows=json.dumps(pinned_data, default=str),
         height=height,
         width=width,
+        auto_height=auto_height,
         auto_size_columns=auto_size_columns,
         size_columns_to_fit=size_columns_to_fit,
         theme=theme,
