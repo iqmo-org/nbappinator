@@ -320,6 +320,21 @@ class AGGridWidget(anywidget.AnyWidget):
                 // Create grid
                 const gridApi = createGrid(container, gridOptions);
 
+                // Force layout refresh after theme CSS applies
+                // This fixes header/body overlap in JupyterLab
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (gridApi) {
+                            gridApi.refreshHeader();
+                            // Trigger full layout recalculation
+                            const currentHeight = container.style.height;
+                            container.style.height = '0px';
+                            container.offsetHeight;  // Force reflow
+                            container.style.height = currentHeight;
+                        }
+                    });
+                });
+
                 // Size columns after data renders
                 setTimeout(() => {
                     if (gridApi) {
