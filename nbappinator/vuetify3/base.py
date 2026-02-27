@@ -232,9 +232,15 @@ function fixWidgetBackground(el, isDark) {{
     `;
     document.head.appendChild(style);
 
-    // Clear all parent backgrounds so notebook theme shows through
+    // Clear parent backgrounds within the output cell only
+    // Stop at notebook output container boundaries to avoid affecting the entire notebook
+    const stopClasses = ['jp-OutputArea-output', 'jp-OutputArea', 'cell-output-ipywidget-background', 'output_subarea', 'output_area'];
     let parent = el.parentElement;
     while (parent && parent !== document.body) {{
+        // Stop if we hit a notebook output container
+        if (stopClasses.some(cls => parent.classList.contains(cls))) {{
+            break;
+        }}
         parent.style.setProperty('background-color', 'transparent', 'important');
         parent.style.setProperty('background', 'transparent', 'important');
         parent = parent.parentElement;
