@@ -175,7 +175,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                         :value="item"
                     />
                 </v-radio-group>
-                <div v-else-if="widgetType === 'slider'" style="padding: 0 12px;">
+                <div v-else-if="widgetType === 'slider'" :style="{{ padding: '0 var(--nbapp-spacing-md)' }}">
                     <label style="font-size: 12px; opacity: 0.7;">{{{{ label }}}}</label>
                     <v-slider
                         v-model="value"

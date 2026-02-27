@@ -36,9 +36,23 @@ class GraphvizGraph(anywidget.AnyWidget):
         const fitWidth = model.get("fit_width");
         const showLabels = model.get("show_labels");
 
-        const borderColor = "#444";
-        const bgColor = "#1e1e1e";
-        const textColor = "#e0e0e0";
+        function detectDarkMode() {
+            const body = document.body;
+            const html = document.documentElement;
+            if (body.classList.contains('vscode-dark') || html.classList.contains('vscode-dark')) return true;
+            if (body.classList.contains('vscode-light') || html.classList.contains('vscode-light')) return false;
+            const vscodeTheme = body.getAttribute('data-vscode-theme-kind') || html.getAttribute('data-vscode-theme-kind');
+            if (vscodeTheme) return vscodeTheme.includes('dark');
+            if (body.hasAttribute('data-jp-theme-light')) return body.getAttribute('data-jp-theme-light') === 'false';
+            if (body.hasAttribute('data-jp-theme-name')) return (body.getAttribute('data-jp-theme-name') || '').toLowerCase().includes('dark');
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
+            return false;
+        }
+
+        const isDark = detectDarkMode();
+        const borderColor = isDark ? "#444" : "#ccc";
+        const bgColor = isDark ? "#1e1e1e" : "#ffffff";
+        const textColor = isDark ? "#e0e0e0" : "#1a1a1a";
 
         function isLightColor(color) {
             if (!color || color === "none") return false;

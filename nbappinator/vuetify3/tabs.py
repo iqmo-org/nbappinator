@@ -41,7 +41,10 @@ class VuetifyTabsWidget(anywidget.AnyWidget):
                     v-model="selected"
                     color="primary"
                     density="compact"
-                    style="border-bottom: 1px solid rgba(128,128,128,0.2);"
+                    :style="{{
+                        borderRadius: 'var(--nbapp-radius)',
+                        background: 'var(--nbapp-surface-variant)',
+                    }}"
                 >
                     <v-tab v-for="(tab, i) in tabs" :key="i" :value="i">
                         {{{{ tab }}}}

@@ -45,21 +45,26 @@ class VuetifyExpansionWidget(anywidget.AnyWidget):
             }},
             template: `
                 <div
+                    role="button"
+                    tabindex="0"
+                    :aria-expanded="expanded"
+                    aria-label="Toggle section"
                     @click.stop.prevent="toggle"
+                    @keydown.enter="toggle"
+                    @keydown.space.prevent="toggle"
                     @mousedown.stop
                     @mouseup.stop
-                    style="
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
-                        padding: 8px 12px;
-                        font-size: 13px;
-                        font-weight: 500;
-                        border: 1px solid rgba(128,128,128,0.3);
-                        border-radius: 4px;
-                        background: rgba(128,128,128,0.08);
-                    "
+                    :style="{{
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: 'var(--nbapp-spacing-sm) var(--nbapp-spacing-md)',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        borderRadius: 'var(--nbapp-radius)',
+                        background: 'var(--nbapp-surface-variant)',
+                    }}"
                 >
                     <span>{{{{ title }}}}</span>
                     <v-icon :icon="icon" size="small" />

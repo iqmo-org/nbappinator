@@ -117,16 +117,24 @@ page.tree("name", paths=["a~b~c"], delimiter="~")  # D3 collapsible tree
 Use `create_grid()` to create an AG Grid without the App wrapper:
 
 ```py
-from nbappinator import create_grid, ColMd
+from nbappinator import create_grid, get_column_defs, apply_format, FORMAT_MAG_SI, FORMAT_PERCENT
 
-columns = [
-    ColMd(name="price", label="Price", format="dec", precision=2),
-    ColMd(name="change", label="Change %", format="perc", precision=2),
-]
+# Generate column definitions from DataFrame
+columns = get_column_defs(df)
+
+# Override
+columns[0]["pinned"] = "left"
+
+# Apply built-in formatters (MAG_SI for K/M/B, PERCENT for %)
+apply_format(columns[1], FORMAT_MAG_SI, precision=1)   # 1500000 -> "1.5M"
+apply_format(columns[2], FORMAT_PERCENT, precision=2)  # 0.05 -> "5.00%"
+
+# Or use custom JS formatters
+columns[3]["valueFormatter"] = "params => '$' + params.value.toFixed(2)"
 
 grid = create_grid(
     df,
-    col_md=columns,
+    column_defs=columns,
     height=400,
     enterprise=False,             # Set True for enterprise features
     license_key="",               # Your AG Grid license key

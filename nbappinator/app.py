@@ -1,14 +1,13 @@
 import io
 import logging
 from functools import wraps
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import ipywidgets
 from IPython.display import display
 
 from . import aggrid_anywidget, graphvizgraph, networkgraph, plotly_charts, treew
 from .browser_title import BrowserTitle
-from .datagrid import ColMd
 from .vuetify3 import (
     VuetifyButtonWidget,
     VuetifyDisplayWidget,
@@ -251,7 +250,7 @@ class Page:
         tree: bool = False,
         tree_column: Optional[str] = None,
         tree_delimiter: str = "~",
-        columns: Optional[List[ColMd]] = None,
+        column_defs: Optional[List[Dict]] = None,
         show_index: bool = False,
         pinned_rows: int = 0,
         precision: int = 2,
@@ -270,7 +269,7 @@ class Page:
             tree: Enable tree data mode (requires enterprise=True)
             tree_column: Column containing tree path
             tree_delimiter: Delimiter for tree paths
-            columns: Column metadata for formatting (list of ColMd)
+            column_defs: AG Grid column definitions (use get_column_defs() to generate, then customize)
             show_index: Show DataFrame index as column
             pinned_rows: Number of rows to pin at top
             precision: Default decimal precision
@@ -291,7 +290,7 @@ class Page:
             is_tree=tree,
             pathcol=tree_column or "path",
             pathdelim=tree_delimiter,
-            col_md=columns or [],
+            column_defs=column_defs,
             showindex=show_index,
             action=on_click,
             num_toppinned_rows=pinned_rows,
@@ -518,25 +517,23 @@ class App:
         """Build the UI structure."""
         # Header (collapsible)
         if self._header_name:
-            self._header_content = ipywidgets.VBox(
+            header_content = ipywidgets.VBox(
                 children=[],
-                layout=ipywidgets.Layout(
-                    background="transparent",
-                    padding="8px 8px 8px 12px",
-                    margin="0 0 0 4px",
-                    border_left="2px solid rgba(128,128,128,0.3)",
-                ),
+                layout=ipywidgets.Layout(background="transparent"),
             )
-            self._pages[self._header_name] = Page(self, self._header_name, self._header_content)
+            header_content.add_class("nbapp-expansion-content")
+            self._header_content = header_content
+            self._pages[self._header_name] = Page(self, self._header_name, header_content)
             self._header_widget = VuetifyExpansionWidget(title=self._header_name, expanded=True)
 
-            header_content = self._header_content
             header_widget = self._header_widget
-            assert header_content is not None
             assert header_widget is not None
 
             def on_header_expand(change):
-                header_content.layout.display = "block" if change["new"] else "none"
+                if change["new"]:
+                    header_content.remove_class("nbapp-expansion-content--hidden")
+                else:
+                    header_content.add_class("nbapp-expansion-content--hidden")
 
             header_widget.observe(on_header_expand, names=["expanded"])
 
@@ -545,51 +542,55 @@ class App:
         for i, tab_name in enumerate(self._tabs):
             content = ipywidgets.VBox(
                 children=[],
-                layout=ipywidgets.Layout(padding="10px 20px", background="transparent"),
+                layout=ipywidgets.Layout(background="transparent"),
             )
-            content.layout.display = "block" if i == 0 else "none"
+            content.add_class("nbapp-tab-content")
+            if i != 0:
+                content.add_class("nbapp-expansion-content--hidden")
             self._tab_contents.append(content)
             self._pages[tab_name] = Page(self, tab_name, content)
 
         if self._tabs:
             self._tab_widget = VuetifyTabsWidget(tabs=self._tabs, selected=0)
             tab_widget = self._tab_widget
+            tab_contents = self._tab_contents
             assert tab_widget is not None
 
             def on_tab_change(change):
-                for j, c in enumerate(self._tab_contents):
-                    c.layout.display = "block" if j == change["new"] else "none"
+                for j, c in enumerate(tab_contents):
+                    if j == change["new"]:
+                        c.remove_class("nbapp-expansion-content--hidden")
+                    else:
+                        c.add_class("nbapp-expansion-content--hidden")
 
             tab_widget.observe(on_tab_change, names=["selected"])
 
         # Footer (collapsible)
         if self._footer_name:
-            self._footer_content = ipywidgets.VBox(
+            footer_content = ipywidgets.VBox(
                 children=[],
-                layout=ipywidgets.Layout(
-                    background="transparent",
-                    padding="8px 8px 8px 12px",
-                    margin="0 0 0 4px",
-                    border_left="2px solid rgba(128,128,128,0.3)",
-                ),
+                layout=ipywidgets.Layout(background="transparent"),
             )
-            self._pages[self._footer_name] = Page(self, self._footer_name, self._footer_content)
+            footer_content.add_class("nbapp-expansion-content")
+            footer_content.add_class("nbapp-expansion-content--hidden")  # Start collapsed
+            self._footer_content = footer_content
+            self._pages[self._footer_name] = Page(self, self._footer_name, footer_content)
             self._footer_widget = VuetifyExpansionWidget(title=self._footer_name, expanded=False)
 
-            footer_content = self._footer_content
             footer_widget = self._footer_widget
-            assert footer_content is not None
             assert footer_widget is not None
 
             def on_footer_expand(change):
-                footer_content.layout.display = "block" if change["new"] else "none"
+                if change["new"]:
+                    footer_content.remove_class("nbapp-expansion-content--hidden")
+                else:
+                    footer_content.add_class("nbapp-expansion-content--hidden")
 
             footer_widget.observe(on_footer_expand, names=["expanded"])
 
             self._messages = VuetifyOutputWidget()
             footer_content.children = [self._messages]
             self._widgets["_messages"] = self._messages
-            footer_content.layout.display = "none"
 
     def _wrap_callback(self, func: Callable, caller_name: str) -> Callable:
         """Wrap a user callback for ipyvuetify on_event style."""
@@ -717,13 +718,12 @@ class App:
         if self._header_widget:
             children.append(self._header_widget)
         if self._header_content:
-            self._header_content.layout.padding = "8px 0"
             children.append(self._header_content)
 
         if self._header_widget and self._tabs:
             children.append(
                 ipywidgets.HTML(
-                    value='<hr style="border: none; border-top: 1px solid rgba(128,128,128,0.2); margin: 12px 0;">',
+                    value='<div class="nbapp-section-gap"></div>',
                     layout=ipywidgets.Layout(background="transparent"),
                 )
             )
@@ -735,7 +735,7 @@ class App:
         if self._tabs and self._footer_widget:
             children.append(
                 ipywidgets.HTML(
-                    value='<hr style="border: none; border-top: 1px solid rgba(128,128,128,0.2); margin: 12px 0;">',
+                    value='<div class="nbapp-section-gap"></div>',
                     layout=ipywidgets.Layout(background="transparent"),
                 )
             )
@@ -743,7 +743,6 @@ class App:
         if self._footer_widget:
             children.append(self._footer_widget)
         if self._footer_content:
-            self._footer_content.layout.padding = "8px 0"
             children.append(self._footer_content)
 
         container = ipywidgets.VBox(

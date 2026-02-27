@@ -18,6 +18,9 @@ dev = [
   "networkx>=3.0",
   "pyright>=1.1.408",
   "playwright>=1.58.0",
+  "plotly>=6.5.0",
+  "pandas>=2.2.2",
+  "voila>=0.5.0",
 ]
 
 [project]
@@ -37,9 +40,7 @@ dynamic = ["version"]
 maintainers = [{name = "Paul T", email = "paul@iqmo.com"}]
 keywords = ["nbappinator", "Jupyter", "Bquant"]
 dependencies = [
-  "plotly>=6.5.0",
   "ipywidgets>=8.1.8",
-  "pandas>=2.2.2",
   "anywidget>=0.9.21",
   "traitlets>=5.0",
 ]

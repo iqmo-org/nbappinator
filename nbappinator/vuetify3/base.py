@@ -142,6 +142,16 @@ function fixWidgetBackground(el, isDark) {{
     const style = document.createElement('style');
     style.id = 'vuetify3-bg-fix';
     style.textContent = `
+        :root {{
+            --nbapp-spacing-xs: 4px;
+            --nbapp-spacing-sm: 8px;
+            --nbapp-spacing-md: 12px;
+            --nbapp-spacing-lg: 16px;
+            --nbapp-radius: 4px;
+            --nbapp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            --nbapp-border-color: rgba(128, 128, 128, 0.3);
+            --nbapp-surface-variant: rgba(128, 128, 128, 0.08);
+        }}
         .cell-output-ipywidget-background,
         .cell-output-ipywidget-background > *,
         .jp-OutputArea-output,
@@ -164,12 +174,60 @@ function fixWidgetBackground(el, isDark) {{
         .vuetify-inline-select .v-text-field {{
             cursor: pointer;
         }}
+        .vuetify-inline-select .v-input {{
+            margin-bottom: 0;
+        }}
+        .vuetify-inline-select .v-input__details {{
+            display: none;
+        }}
         .vuetify-inline-select-list {{
-            border: 1px solid rgba(128, 128, 128, 0.3);
-            border-radius: 4px;
-            margin-top: 4px;
+            border: 1px solid var(--nbapp-border-color);
+            border-radius: var(--nbapp-radius);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            margin-top: -1px;
             max-height: 200px;
             overflow-y: auto;
+        }}
+        .vuetify-inline-select-list .v-list-item {{
+            min-height: 32px;
+        }}
+        .vuetify-inline-select-list .v-list-item-title {{
+            font-size: 14px !important;
+        }}
+
+        /* Normalize font sizes across all Vuetify components */
+        .v-theme--dark, .v-theme--light {{
+            font-size: 14px;
+        }}
+        .v-field__input, .v-list-item-title, .v-label {{
+            font-size: 14px !important;
+        }}
+
+        /* Expansion panel content - indented under header */
+        .nbapp-expansion-content {{
+            padding: var(--nbapp-spacing-sm) var(--nbapp-spacing-md) !important;
+            padding-left: var(--nbapp-spacing-lg) !important;
+            margin-top: 0 !important;
+            background: transparent !important;
+        }}
+
+        /* Hidden expansion content */
+        .nbapp-expansion-content--hidden {{
+            display: none !important;
+        }}
+
+        /* Tab content panel - indented under tab bar */
+        .nbapp-tab-content {{
+            padding: var(--nbapp-spacing-sm) var(--nbapp-spacing-md) !important;
+            padding-left: var(--nbapp-spacing-lg) !important;
+            margin-top: 0 !important;
+            background: transparent !important;
+        }}
+
+        /* Section spacing between major sections */
+        .nbapp-section-gap {{
+            height: var(--nbapp-spacing-lg);
         }}
     `;
     document.head.appendChild(style);
@@ -184,10 +242,26 @@ function fixWidgetBackground(el, isDark) {{
 }}
 
 // Apply theme background color to an element
-// Vuetify's v-theme--dark class sets CSS vars but NOT background-color
+// Uses Vuetify CSS variables when available, fallback to hardcoded values
 function applyThemeBackground(el, isDark) {{
+    // Set initial colors (fallback values)
     el.style.backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
-    el.style.color = isDark ? '#ffffffde' : '#000000de';
+    el.style.color = isDark ? 'rgba(255, 255, 255, 0.87)' : 'rgba(0, 0, 0, 0.87)';
+
+    // After Vuetify mounts, use CSS variables via style attribute
+    // Vuetify sets --v-theme-surface and --v-theme-on-surface as RGB triplets
+    requestAnimationFrame(() => {{
+        el.style.backgroundColor = 'rgb(var(--v-theme-surface, ' + (isDark ? '30, 30, 30' : '255, 255, 255') + '))';
+        el.style.color = 'rgb(var(--v-theme-on-surface, ' + (isDark ? '255, 255, 255' : '0, 0, 0') + '))';
+    }});
+}}
+
+// Apply only text color (no background) for transparent containers
+function applyThemeTextColor(el, isDark) {{
+    el.style.color = isDark ? 'rgba(255, 255, 255, 0.87)' : 'rgba(0, 0, 0, 0.87)';
+    requestAnimationFrame(() => {{
+        el.style.color = 'rgb(var(--v-theme-on-surface, ' + (isDark ? '255, 255, 255' : '0, 0, 0') + '))';
+    }});
 }}
 
 // Set Vuetify theme using the non-deprecated API
@@ -202,10 +276,10 @@ function initVuetify(el) {{
     const isDark = detectTheme(el);
     fixWidgetBackground(el, isDark);
 
-    // Create wrapper with theme class AND background color
+    // Create wrapper with theme class (no background - let notebook show through)
     const mountEl = document.createElement('div');
     mountEl.className = isDark ? 'v-theme--dark' : 'v-theme--light';
-    applyThemeBackground(mountEl, isDark);
+    applyThemeTextColor(mountEl, isDark);
     mountEl.style.padding = '4px';
     el.appendChild(mountEl);
 
@@ -213,6 +287,35 @@ function initVuetify(el) {{
     const vuetify = createVuetify({{
         theme: {{
             defaultTheme: isDark ? 'dark' : 'light',
+            themes: {{
+                light: {{
+                    colors: {{
+                        primary: '#1976D2',
+                        success: '#4CAF50',
+                        error: '#FF5252',
+                        warning: '#FB8C00',
+                        info: '#2196F3',
+                    }}
+                }},
+                dark: {{
+                    colors: {{
+                        primary: '#2196F3',
+                        success: '#4CAF50',
+                        error: '#FF5252',
+                        warning: '#FFB300',
+                        info: '#2196F3',
+                    }}
+                }}
+            }}
+        }},
+        defaults: {{
+            VBtn: {{ density: 'default' }},
+            VTextField: {{ variant: 'outlined', density: 'compact' }},
+            VSelect: {{ variant: 'outlined', density: 'compact' }},
+            VTextarea: {{ variant: 'outlined', density: 'compact' }},
+            VCheckbox: {{ density: 'compact' }},
+            VRadioGroup: {{ density: 'compact' }},
+            VSlider: {{ density: 'compact' }},
         }},
     }});
 
@@ -225,7 +328,7 @@ function setupThemeWatcher(vuetify, el, mountEl) {{
     setVuetifyTheme(vuetify, isDark);
     if (mountEl) {{
         mountEl.className = isDark ? 'v-theme--dark' : 'v-theme--light';
-        applyThemeBackground(mountEl, isDark);
+        applyThemeTextColor(mountEl, isDark);
     }}
 
     onThemeChange((newIsDark) => {{
@@ -233,7 +336,7 @@ function setupThemeWatcher(vuetify, el, mountEl) {{
         fixWidgetBackground(el, newIsDark);
         if (mountEl) {{
             mountEl.className = newIsDark ? 'v-theme--dark' : 'v-theme--light';
-            applyThemeBackground(mountEl, newIsDark);
+            applyThemeTextColor(mountEl, newIsDark);
         }}
     }}, el);
 }}

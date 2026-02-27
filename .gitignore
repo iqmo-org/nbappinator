@@ -20,3 +20,6 @@ build
 
 checkpoint
 baseline
+
+*.html
+*.png
