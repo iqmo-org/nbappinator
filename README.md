@@ -189,6 +189,8 @@ Interactive notebooks demonstrating nbappinator features are available in the [n
 | D3 Tree Widget | [6_tree_app.ipynb](notebooks/6_tree_app.ipynb) |
 | AG Grid (Community) | [7_grid_anywidget.ipynb](notebooks/7_grid_anywidget.ipynb) |
 | AG Grid (Enterprise) | [8_aggrid_enterprise.ipynb](notebooks/8_aggrid_enterprise.ipynb) |
+| Default Grid Renderer | [9_default_grid_renderer.ipynb](notebooks/9_default_grid_renderer.ipynb) |
+
 
 # Deployment and BQuant
 
