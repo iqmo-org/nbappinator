@@ -29,6 +29,7 @@ class AGGridWidget(anywidget.AnyWidget):
     height = traitlets.Int(500).tag(sync=True)
     width = traitlets.Unicode("100%").tag(sync=True)  # Can be "100%", "500px", etc.
     theme = traitlets.Unicode("ag-theme-balham").tag(sync=True)
+    auto_height = traitlets.Bool(True).tag(sync=True)  # Auto-size grid to fit rows
     auto_size_columns = traitlets.Bool(False).tag(sync=True)  # Auto-fit columns to content
     size_columns_to_fit = traitlets.Bool(False).tag(sync=True)  # Fit columns to grid width
 
@@ -71,6 +72,49 @@ class AGGridWidget(anywidget.AnyWidget):
             }
         `;
         document.head.appendChild(style);
+    }
+
+    // Inject structural CSS for grid layout (fixes header/body overlap in JupyterLab)
+    function injectStructuralCSS(container) {
+        const style = document.createElement("style");
+        style.textContent = `
+            .ag-root-wrapper {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root-wrapper-body {
+                display: flex;
+                flex: 1 1 auto;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
+                overflow: hidden;
+            }
+            .ag-header {
+                flex: none;
+                position: relative;
+                z-index: 1;
+            }
+            .ag-body {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-body-viewport {
+                flex: 1 1 auto;
+                overflow: auto;
+                position: relative;
+            }
+        `;
+        container.appendChild(style);
     }
 
     // Create value formatter based on format type
@@ -214,6 +258,7 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const height = model.get("height");
                 const width = model.get("width") || "100%";
+                const autoHeight = model.get("auto_height");
                 const isTree = model.get("is_tree");
                 const pathCol = model.get("path_col");
                 const pathDelim = model.get("path_delim");
@@ -238,12 +283,15 @@ class AGGridWidget(anywidget.AnyWidget):
                 el.style.width = width;
 
                 const container = document.createElement("div");
-                container.style.height = `${height}px`;
+                if (!autoHeight) {
+                    container.style.height = `${height}px`;
+                }
                 container.style.width = "100%";
                 container.style.backgroundColor = bgColor;
                 el.appendChild(container);
 
                 injectNotebookStyles(isDark);
+                injectStructuralCSS(container);
 
                 // Convert selection mode to new object format (v32.2.1+)
                 // checkboxes: false to avoid showing checkbox column
@@ -253,7 +301,8 @@ class AGGridWidget(anywidget.AnyWidget):
 
                 const gridOptions = {
                     theme: gridTheme,
-                    themeStyleContainer: container,  // Inject CSS into container, not document.head for Jupyter
+                    themeStyleContainer: container,  // Inject CSS into container for Jupyter isolation
+                    domLayout: autoHeight ? 'autoHeight' : 'normal',
                     rowData: rowData,
                     columnDefs: columnDefs,
                     defaultColDef: {
@@ -573,6 +622,7 @@ def create_grid(
     select_mode: Optional[Literal["single", "multiple"]] = "single",
     height: int = 500,
     width: str = "100%",
+    auto_height: bool = True,
     auto_size_columns: bool = False,
     size_columns_to_fit: bool = False,
     theme: str = "ag-theme-balham",
@@ -600,9 +650,10 @@ def create_grid(
         flatten_columns: Flatten MultiIndex columns
         default_precision: Default decimal precision
         select_mode: Row selection mode ('single' or 'multiple')
-        height: Grid height in pixels
+        height: Grid height in pixels (only used when auto_height=False)
         width: Grid width (e.g., "100%", "600px", "50vw")
-        auto_size_columns: Auto-size columns to fit their content (default: True)
+        auto_height: Auto-size grid height to fit rows (default: True)
+        auto_size_columns: Auto-size columns to fit their content
         size_columns_to_fit: Size columns to fit grid width (overrides auto_size_columns)
         theme: AG Grid theme class
         aggrid_version: AG Grid version to load from CDN (default: "latest")
@@ -633,7 +684,11 @@ def create_grid(
         >>> grid = create_grid(df, column_defs=cols)
     """
     if grid_options is None:
-        grid_options = {}
+        if len(input_df) > 20:
+            # Apply default pagination
+            grid_options = {"pagination": True, "paginationPageSize": 20}
+        else:
+            grid_options = {}
 
     df = input_df.copy()
     if flatten_columns:
@@ -665,6 +720,7 @@ def create_grid(
         pinned_top_rows=json.dumps(pinned_data, default=str),
         height=height,
         width=width,
+        auto_height=auto_height,
         auto_size_columns=auto_size_columns,
         size_columns_to_fit=size_columns_to_fit,
         theme=theme,
