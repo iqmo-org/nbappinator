@@ -73,6 +73,49 @@ class AGGridWidget(anywidget.AnyWidget):
         document.head.appendChild(style);
     }
 
+    // Inject structural CSS for grid layout (fixes header/body overlap in JupyterLab)
+    function injectStructuralCSS(container) {
+        const style = document.createElement("style");
+        style.textContent = `
+            .ag-root-wrapper {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root-wrapper-body {
+                display: flex;
+                flex: 1 1 auto;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-root {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
+                overflow: hidden;
+            }
+            .ag-header {
+                flex: none;
+                position: relative;
+                z-index: 1;
+            }
+            .ag-body {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                overflow: hidden;
+                position: relative;
+            }
+            .ag-body-viewport {
+                flex: 1 1 auto;
+                overflow: auto;
+                position: relative;
+            }
+        `;
+        container.appendChild(style);
+    }
+
     // Create value formatter based on format type
     function createValueFormatter(format, precision) {
         if (!format || format === "default") {
