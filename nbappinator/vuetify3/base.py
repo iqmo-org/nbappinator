@@ -231,14 +231,6 @@ function fixWidgetBackground(el, isDark) {{
         }}
     `;
     document.head.appendChild(style);
-
-    // Clear all parent backgrounds so notebook theme shows through
-    let parent = el.parentElement;
-    while (parent && parent !== document.body) {{
-        parent.style.setProperty('background-color', 'transparent', 'important');
-        parent.style.setProperty('background', 'transparent', 'important');
-        parent = parent.parentElement;
-    }}
 }}
 
 // Apply theme background color to an element
