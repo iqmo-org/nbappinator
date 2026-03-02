@@ -25,7 +25,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
 
     async function render({{ model, el }}) {{
         const {{ Vue }} = await loadVuetify();
-        const {{ createApp, ref, watch, h }} = Vue;
+        const {{ createApp, ref, watch, computed, h }} = Vue;
 
         const {{ vuetify, mountEl }} = initVuetify(el);
 
@@ -62,6 +62,15 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 const selectDialogOpen = ref(false);
                 const comboDialogOpen = ref(false);
 
+                // Filter combobox to 50 items
+                const filteredComboItems = computed(() => {{
+                    const search = (value.value || '').toString().toLowerCase();
+                    if (!search) return items.value.slice(0, 50);
+                    return items.value
+                        .filter(item => item.toString().toLowerCase().includes(search))
+                        .slice(0, 50);
+                }});
+
                 const handleSelectClick = (item) => {{
                     if (multiple.value) {{
                         const arr = Array.isArray(value.value) ? [...value.value] : [];
@@ -81,7 +90,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 return {{
                     widgetType, label, items, value, disabled, multiple,
                     minValue, maxValue, step, selectDialogOpen, comboDialogOpen,
-                    handleSelectClick
+                    filteredComboItems, handleSelectClick
                 }};
             }},
             template: `
@@ -120,14 +129,21 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                         density="compact"
                         :append-inner-icon="comboDialogOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
                         @click:append-inner="comboDialogOpen = !comboDialogOpen"
+                        @focus="comboDialogOpen = true"
                     />
                     <v-list
                         v-if="comboDialogOpen"
                         density="compact"
                         class="vuetify-inline-select-list"
                     >
+                        <v-list-item v-if="!value && items.length > 50" disabled>
+                            <v-list-item-title style="opacity: 0.6; font-style: italic;">Type to search ({{{{ items.length }}}} items)...</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item v-else-if="value && filteredComboItems.length === 0" disabled>
+                            <v-list-item-title style="opacity: 0.6; font-style: italic;">No matches found</v-list-item-title>
+                        </v-list-item>
                         <v-list-item
-                            v-for="item in items"
+                            v-for="item in filteredComboItems"
                             :key="item"
                             :active="value === item"
                             @click="value = item; comboDialogOpen = false"
