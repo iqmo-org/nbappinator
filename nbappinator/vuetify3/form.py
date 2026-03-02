@@ -62,7 +62,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 const selectDialogOpen = ref(false);
                 const comboDialogOpen = ref(false);
 
-                // Filter combobox to 50 items
+                // Filter combobox to 50 items for performance
                 const filteredComboItems = computed(() => {{
                     const search = (value.value || '').toString().toLowerCase();
                     if (!search) return items.value.slice(0, 50);
