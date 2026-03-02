@@ -3,9 +3,7 @@ from typing import Literal, Optional
 import anywidget
 import traitlets
 
-LayoutEngine = Literal[
-    "dot", "neato", "fdp", "sfdp", "circo", "twopi", "osage", "patchwork"
-]
+LayoutEngine = Literal["dot", "neato", "fdp", "sfdp", "circo", "twopi", "osage", "patchwork"]
 
 DEFAULT_GRAPHVIZ_VERSION = "latest"
 
@@ -251,7 +249,7 @@ class GraphvizGraph(anywidget.AnyWidget):
                 const zoomLayer = d3.select(zoomG);
 
                 const zoom = d3.zoom()
-                    .scaleExtent([0.1, 20])
+                    .scaleExtent([0.1, 100])
                     .on("zoom", (event) => {
                         zoomLayer.attr("transform", event.transform);
                     });
@@ -321,9 +319,7 @@ def networkx_to_dot(
         node_data = nx_graph.nodes[node]
         node_id = str(node).replace('"', '\\"')
         if node_data:
-            attrs = " ".join(
-                f'{k}="{v}"' for k, v in node_data.items() if v is not None
-            )
+            attrs = " ".join(f'{k}="{v}"' for k, v in node_data.items() if v is not None)
             if attrs:
                 lines.append(f'    "{node_id}" [{attrs}];')
             else:
