@@ -41,7 +41,7 @@ maintainers = [{name = "Paul T", email = "paul@iqmo.com"}]
 keywords = ["nbappinator", "Jupyter", "Bquant"]
 dependencies = [
   "ipywidgets>=8.1.8",
-  "anywidget>=0.9.21",
+  "anywidget>=0.9.18",
   "traitlets>=5.0",
 ]
 

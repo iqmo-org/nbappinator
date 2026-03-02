@@ -25,7 +25,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
 
     async function render({{ model, el }}) {{
         const {{ Vue }} = await loadVuetify();
-        const {{ createApp, ref, watch, h }} = Vue;
+        const {{ createApp, ref, shallowRef, watch, computed, h }} = Vue;
 
         const {{ vuetify, mountEl }} = initVuetify(el);
 
@@ -34,7 +34,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
             setup() {{
                 const widgetType = ref(model.get('widget_type'));
                 const label = ref(model.get('label'));
-                const items = ref(model.get('items') || []);
+                const items = shallowRef(model.get('items') || []);  // shallowRef for performance with large arrays
                 const value = ref(model.get('value'));
                 const disabled = ref(model.get('disabled'));
                 const multiple = ref(model.get('multiple'));
@@ -45,7 +45,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 // Sync from Python to JS
                 model.on('change:widget_type', () => widgetType.value = model.get('widget_type'));
                 model.on('change:label', () => label.value = model.get('label'));
-                model.on('change:items', () => items.value = model.get('items') || []);
+                model.on('change:items', () => {{ items.value = model.get('items') || []; }});
                 model.on('change:value', () => value.value = model.get('value'));
                 model.on('change:disabled', () => disabled.value = model.get('disabled'));
                 model.on('change:multiple', () => multiple.value = model.get('multiple'));
@@ -61,6 +61,15 @@ class VuetifyFormWidget(anywidget.AnyWidget):
 
                 const selectDialogOpen = ref(false);
                 const comboDialogOpen = ref(false);
+
+                // Filter combobox to 50 items for performance
+                const filteredComboItems = computed(() => {{
+                    const search = (value.value || '').toString().toLowerCase();
+                    if (!search) return items.value.slice(0, 50);
+                    return items.value
+                        .filter(item => item.toString().toLowerCase().includes(search))
+                        .slice(0, 50);
+                }});
 
                 const handleSelectClick = (item) => {{
                     if (multiple.value) {{
@@ -81,7 +90,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 return {{
                     widgetType, label, items, value, disabled, multiple,
                     minValue, maxValue, step, selectDialogOpen, comboDialogOpen,
-                    handleSelectClick
+                    filteredComboItems, handleSelectClick
                 }};
             }},
             template: `
@@ -120,14 +129,21 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                         density="compact"
                         :append-inner-icon="comboDialogOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
                         @click:append-inner="comboDialogOpen = !comboDialogOpen"
+                        @focus="comboDialogOpen = true"
                     />
                     <v-list
                         v-if="comboDialogOpen"
                         density="compact"
                         class="vuetify-inline-select-list"
                     >
+                        <v-list-item v-if="!value && items.length > 50" disabled>
+                            <v-list-item-title style="opacity: 0.6; font-style: italic;">Type to search ({{{{ items.length }}}} items)...</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item v-else-if="value && filteredComboItems.length === 0" disabled>
+                            <v-list-item-title style="opacity: 0.6; font-style: italic;">No matches found</v-list-item-title>
+                        </v-list-item>
                         <v-list-item
-                            v-for="item in items"
+                            v-for="item in filteredComboItems"
                             :key="item"
                             :active="value === item"
                             @click="value = item; comboDialogOpen = false"
