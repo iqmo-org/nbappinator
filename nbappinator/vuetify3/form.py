@@ -25,7 +25,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
 
     async function render({{ model, el }}) {{
         const {{ Vue }} = await loadVuetify();
-        const {{ createApp, ref, watch, computed, h }} = Vue;
+        const {{ createApp, ref, shallowRef, watch, computed, h }} = Vue;
 
         const {{ vuetify, mountEl }} = initVuetify(el);
 
@@ -34,7 +34,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
             setup() {{
                 const widgetType = ref(model.get('widget_type'));
                 const label = ref(model.get('label'));
-                const items = ref(model.get('items') || []);
+                const items = shallowRef(model.get('items') || []);  // shallowRef for performance with large arrays
                 const value = ref(model.get('value'));
                 const disabled = ref(model.get('disabled'));
                 const multiple = ref(model.get('multiple'));
@@ -45,7 +45,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 // Sync from Python to JS
                 model.on('change:widget_type', () => widgetType.value = model.get('widget_type'));
                 model.on('change:label', () => label.value = model.get('label'));
-                model.on('change:items', () => items.value = model.get('items') || []);
+                model.on('change:items', () => {{ items.value = model.get('items') || []; }});  // triggers shallowRef
                 model.on('change:value', () => value.value = model.get('value'));
                 model.on('change:disabled', () => disabled.value = model.get('disabled'));
                 model.on('change:multiple', () => multiple.value = model.get('multiple'));
