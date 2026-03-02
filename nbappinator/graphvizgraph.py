@@ -249,7 +249,7 @@ class GraphvizGraph(anywidget.AnyWidget):
                 const zoomLayer = d3.select(zoomG);
 
                 const zoom = d3.zoom()
-                    .scaleExtent([0.1, 4])
+                    .scaleExtent([0.1, 100])
                     .on("zoom", (event) => {
                         zoomLayer.attr("transform", event.transform);
                     });
