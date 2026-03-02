@@ -45,7 +45,7 @@ class VuetifyFormWidget(anywidget.AnyWidget):
                 // Sync from Python to JS
                 model.on('change:widget_type', () => widgetType.value = model.get('widget_type'));
                 model.on('change:label', () => label.value = model.get('label'));
-                model.on('change:items', () => {{ items.value = model.get('items') || []; }});  // triggers shallowRef
+                model.on('change:items', () => {{ items.value = model.get('items') || []; }});
                 model.on('change:value', () => value.value = model.get('value'));
                 model.on('change:disabled', () => disabled.value = model.get('disabled'));
                 model.on('change:multiple', () => multiple.value = model.get('multiple'));
